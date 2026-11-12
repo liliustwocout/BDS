@@ -13,7 +13,7 @@ import {
 import { ActiveTab } from '@/types';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { TopNav, NAV_TABS } from '@/components/layout/TopNav';
-import { OnboardingGuideModal } from '@/components/common/OnboardingGuideModal';
+import { InteractiveSpotlightTour } from '@/components/common/InteractiveSpotlightTour';
 import LandingPageView from '@/components/pages/LandingPageView';
 import DiscoveryView from '@/components/pages/DiscoveryView';
 import LocationIntelView from '@/components/pages/LocationIntelView';
@@ -113,8 +113,8 @@ export default function SpaceVisionAppPage() {
         {activeTab === 'comparison' && <ComparisonReportView />}
       </main>
 
-      {/* Interactive Step-by-Step Onboarding Walkthrough & Help Modal */}
-      <OnboardingGuideModal />
+      {/* Interactive Spotlight Element-Highlighting Tour & Help Guide */}
+      <InteractiveSpotlightTour />
 
       {/* Bottom Contextual Workflow Bar (Active when exploring tools beyond landing) */}
       {activeTab !== 'landing' && (

@@ -270,7 +270,7 @@ export const LandingPageView: React.FC = () => {
           {/* Central Real Estate Search Box */}
           <div className="mt-8 rounded-2xl border border-slate-200/90 bg-white p-3 sm:p-4 shadow-xl shadow-slate-200/60">
             {/* Natural language idea input */}
-            <div className="relative mb-3">
+            <div id="tour-search-input" className="relative mb-3">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
                 <Search className="h-5 w-5 text-slate-400" />
               </div>
@@ -287,7 +287,7 @@ export const LandingPageView: React.FC = () => {
             </div>
 
             {/* Quick selectors row & Action CTA */}
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-4">
+            <div id="tour-search-cta" className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-4">
               {/* Business Type selector */}
               <div>
                 <label className="mb-1 block text-[11px] font-semibold text-slate-600">
@@ -437,6 +437,7 @@ export const LandingPageView: React.FC = () => {
           {filteredProperties.map((prop, index) => (
             <div
               key={prop.id}
+              id={index === 0 ? 'tour-property-card' : undefined}
               className="group flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md hover:border-slate-300"
             >
               {/* Architectural Preview Render Box */}
@@ -517,7 +518,10 @@ export const LandingPageView: React.FC = () => {
                 </div>
 
                 {/* Compact Landlord Contact Badge & Direct Action */}
-                <div className="mb-3 flex items-center justify-between gap-1.5 p-2 rounded-lg bg-slate-50/90 border border-slate-200">
+                <div
+                  id={index === 0 ? 'tour-landlord-contact' : undefined}
+                  className="mb-3 flex items-center justify-between gap-1.5 p-2 rounded-lg bg-slate-50/90 border border-slate-200"
+                >
                   <button
                     type="button"
                     onClick={() => setBookingProperty(prop)}
@@ -576,7 +580,10 @@ export const LandingPageView: React.FC = () => {
                 )}
 
                 {/* Action Buttons: 3D Twin & 3D Map */}
-                <div className="mt-auto grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                <div
+                  id={index === 0 ? 'tour-3d-actions' : undefined}
+                  className="mt-auto grid grid-cols-2 gap-2 pt-2 border-t border-slate-100"
+                >
                   <button
                     onClick={() => handleOpen3DTwin(prop.id)}
                     className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-2 px-2 text-xs font-semibold text-slate-800 hover:border-slate-300 hover:bg-slate-50 transition shadow-sm"
