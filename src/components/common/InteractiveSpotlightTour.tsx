@@ -103,28 +103,72 @@ export function InteractiveSpotlightTour() {
     if (!step) return;
 
     const timer = setTimeout(() => {
-      const el = document.querySelector(step.selector);
+      const el = document.querySelector(step.selector) as HTMLElement | null;
       if (el) {
-        const elRect = el.getBoundingClientRect();
-        const vh = window.innerHeight;
-        const targetAbsY = window.scrollY + elRect.top;
+        // 1. Walk up the DOM to scroll any scrollable parent container(s) (overflow-y-auto)
+        let curr: HTMLElement | null = el.parentElement;
+        let hasScrolledContainer = false;
 
-        if (step.preferredPlacement === 'top') {
-          // Scroll target so it rests in the lower portion (~65% of screen height)
-          // Leaving ample room above for tooltip without overlapping
-          const targetScroll = targetAbsY - (vh * 0.65 - elRect.height / 2);
+        while (curr && curr !== document.body && curr !== document.documentElement) {
+          const style = window.getComputedStyle(curr);
+          const overflowY = style.overflowY;
+          const isScrollable =
+            (overflowY === 'auto' || overflowY === 'scroll') &&
+            curr.scrollHeight > curr.clientHeight + 8;
+
+          if (isScrollable) {
+            const parentRect = curr.getBoundingClientRect();
+            const elRect = el.getBoundingClientRect();
+            const relativeTop = elRect.top - parentRect.top + curr.scrollTop;
+            const cHeight = curr.clientHeight;
+
+            let targetScrollTop: number;
+            if (step.preferredPlacement === 'top') {
+              // Place target towards the lower portion (~60%) so tooltip has space above
+              targetScrollTop = relativeTop - (cHeight * 0.60 - elRect.height / 2);
+            } else {
+              // Preferred bottom: place target towards the upper portion (~18%) so tooltip has space below
+              targetScrollTop = relativeTop - Math.max(30, cHeight * 0.18);
+            }
+
+            curr.scrollTo({
+              top: Math.max(0, targetScrollTop),
+              behavior: 'smooth',
+            });
+            hasScrolledContainer = true;
+          }
+          curr = curr.parentElement;
+        }
+
+        // 2. Also handle window scroll if window itself is scrollable (e.g. Landing Page)
+        const vh = window.innerHeight;
+        const docHeight = document.documentElement.scrollHeight;
+        if (docHeight > vh + 10) {
+          const elRect = el.getBoundingClientRect();
+          const targetAbsY = window.scrollY + elRect.top;
+          let targetWindowScroll: number;
+
+          if (step.preferredPlacement === 'top') {
+            targetWindowScroll = targetAbsY - (vh * 0.60 - elRect.height / 2);
+          } else {
+            targetWindowScroll = targetAbsY - Math.min(vh * 0.22, 160);
+          }
+
           window.scrollTo({
-            top: Math.max(0, targetScroll),
+            top: Math.max(0, targetWindowScroll),
             behavior: 'smooth',
           });
-        } else {
-          // preferred 'bottom': Scroll target so it rests in the upper portion (~24% of screen height)
-          // Leaving ample room below for tooltip without overlapping
-          const targetScroll = targetAbsY - vh * 0.24;
-          window.scrollTo({
-            top: Math.max(0, targetScroll),
-            behavior: 'smooth',
-          });
+        } else if (!hasScrolledContainer) {
+          // 3. Fallback: Native scrollIntoView if no container was scrolled
+          try {
+            el.scrollIntoView({
+              behavior: 'smooth',
+              block: step.preferredPlacement === 'top' ? 'end' : 'center',
+              inline: 'nearest',
+            });
+          } catch {
+            // Ignore if unsupported
+          }
         }
       }
       updateSpotlightPosition();
@@ -135,20 +179,21 @@ export function InteractiveSpotlightTour() {
     };
 
     window.addEventListener('resize', handleUpdate, { passive: true });
-    window.addEventListener('scroll', handleUpdate, { passive: true });
+    // Capture-phase scroll listener tracks scrolling of ANY container (internal panels or window)
+    window.addEventListener('scroll', handleUpdate, { capture: true, passive: true });
 
     // Poll to track smooth scrolling until complete
-    const interval = setInterval(updateSpotlightPosition, 50);
-    const stopInterval = setTimeout(() => clearInterval(interval), 650);
+    const interval = setInterval(updateSpotlightPosition, 30);
+    const stopInterval = setTimeout(() => clearInterval(interval), 850);
 
     return () => {
       clearTimeout(timer);
       clearInterval(interval);
       clearTimeout(stopInterval);
       window.removeEventListener('resize', handleUpdate);
-      window.removeEventListener('scroll', handleUpdate);
+      window.removeEventListener('scroll', handleUpdate, { capture: true } as EventListenerOptions);
     };
-  }, [showOnboardingGuide, currentStepIndex, updateSpotlightPosition]);
+  }, [showOnboardingGuide, currentStepIndex, tourSteps, updateSpotlightPosition]);
 
   // Keyboard controls: ArrowRight, ArrowLeft, Escape
   useEffect(() => {
