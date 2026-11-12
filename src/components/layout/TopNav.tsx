@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   Compass,
   MapPin,
@@ -23,7 +24,7 @@ import {
   Menu,
   HelpCircle,
 } from 'lucide-react';
-import { ActiveTab, BusinessType, TAB_ROUTES } from '@/types';
+import { ActiveTab, BusinessType, TAB_ROUTES, ROUTE_TO_TAB } from '@/types';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { BUSINESS_TYPE_META } from '@/lib/aiEngine';
 
@@ -104,6 +105,7 @@ export const NAV_TABS: NavTabConfig[] = [
 ];
 
 export const TopNav: React.FC = () => {
+  const pathname = usePathname();
   const {
     activeTab,
     setActiveTab,
@@ -115,6 +117,8 @@ export const TopNav: React.FC = () => {
     setSelectedBusinessType,
     openOnboardingGuide,
   } = useSpaceVisionStore();
+
+  const currentTab: ActiveTab = ROUTE_TO_TAB[pathname] || activeTab;
 
   const [propertyDropdownOpen, setPropertyDropdownOpen] = useState(false);
   const [provenanceOpen, setProvenanceOpen] = useState(false);
@@ -146,6 +150,7 @@ export const TopNav: React.FC = () => {
           <div className="flex items-center gap-3">
             <Link
               href="/"
+              onClick={() => setActiveTab('landing')}
               className="group flex items-center gap-2.5 text-left focus:outline-none"
               title="Về Trang chủ SpaceVision"
             >
@@ -170,7 +175,7 @@ export const TopNav: React.FC = () => {
             <div className="hidden h-6 w-[1px] bg-slate-200 md:block" />
 
             {/* Active Property Quick-Switcher Pill (Only shown when exploring tools beyond landing) */}
-            {activeTab !== 'landing' && selectedProperty && (
+            {currentTab !== 'landing' && selectedProperty && (
               <>
                 <div className="hidden h-5 w-[1px] bg-slate-200 md:block" />
                 <div className="relative" ref={propDropdownRef}>
@@ -264,13 +269,14 @@ export const TopNav: React.FC = () => {
           >
             {NAV_TABS.map((tab) => {
               const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
+              const isActive = currentTab === tab.id;
               const isComparison = tab.id === 'comparison';
 
               return (
                 <Link
                   key={tab.id}
                   href={TAB_ROUTES[tab.id]}
+                  onClick={() => setActiveTab(tab.id)}
                   title={`${tab.label} (${tab.shortcut}) — ${tab.description}`}
                   className={`group relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors whitespace-nowrap ${
                     isActive
@@ -307,7 +313,7 @@ export const TopNav: React.FC = () => {
             <button
               onClick={() => openOnboardingGuide()}
               className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-sm font-bold text-slate-800 transition hover:bg-slate-50 hover:text-slate-900 shadow-xs cursor-pointer"
-              title={`Xem hướng dẫn sử dụng từng bước cho ${NAV_TABS.find((t) => t.id === activeTab)?.label || 'trang này'}`}
+              title={`Xem hướng dẫn sử dụng từng bước cho ${NAV_TABS.find((t) => t.id === currentTab)?.label || 'trang này'}`}
             >
               <HelpCircle className="h-4 w-4 text-blue-600" />
               <span>Hướng dẫn</span>
@@ -331,12 +337,15 @@ export const TopNav: React.FC = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pb-3 border-b border-slate-100">
               {NAV_TABS.map((tab) => {
                 const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
+                const isActive = currentTab === tab.id;
                 return (
                   <Link
                     key={tab.id}
                     href={TAB_ROUTES[tab.id]}
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setMobileMenuOpen(false);
+                    }}
                     className={`flex items-center gap-2 rounded-lg p-2 text-left text-xs transition ${
                       isActive
                         ? 'bg-slate-900 text-white font-bold'

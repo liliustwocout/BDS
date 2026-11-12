@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   X,
   ChevronRight,
@@ -14,6 +15,7 @@ import {
   Sparkles,
   Compass,
 } from 'lucide-react';
+import { ROUTE_TO_TAB } from '@/types';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 
 import { PAGE_TOUR_CONFIG, TourStep } from './tourConfig';
@@ -28,13 +30,15 @@ interface ElementRect {
 }
 
 export function InteractiveSpotlightTour() {
+  const pathname = usePathname();
   const {
     showOnboardingGuide,
     closeOnboardingGuide,
     activeTab,
   } = useSpaceVisionStore();
 
-  const currentTourMeta = PAGE_TOUR_CONFIG[activeTab] || PAGE_TOUR_CONFIG.landing;
+  const currentTab = ROUTE_TO_TAB[pathname] || activeTab;
+  const currentTourMeta = PAGE_TOUR_CONFIG[currentTab] || PAGE_TOUR_CONFIG.landing;
   const tourSteps = currentTourMeta.steps;
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -47,7 +51,7 @@ export function InteractiveSpotlightTour() {
     if (showOnboardingGuide) {
       setCurrentStepIndex(0);
     }
-  }, [showOnboardingGuide, activeTab]);
+  }, [showOnboardingGuide, currentTab]);
 
   // Dynamically measure actual tooltip height
   useLayoutEffect(() => {
@@ -168,11 +172,11 @@ export function InteractiveSpotlightTour() {
 
   const handleSkip = useCallback(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('spacevision_tour_seen_' + activeTab, 'true');
+      localStorage.setItem('spacevision_tour_seen_' + currentTab, 'true');
       localStorage.setItem(STORAGE_KEY, 'true');
     }
     closeOnboardingGuide();
-  }, [closeOnboardingGuide, activeTab]);
+  }, [closeOnboardingGuide, currentTab]);
 
   const handleNext = () => {
     if (currentStepIndex < tourSteps.length - 1) {

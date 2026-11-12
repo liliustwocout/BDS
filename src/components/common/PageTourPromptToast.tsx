@@ -1,19 +1,23 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { HelpCircle, X, ChevronRight, Sparkles } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { X, ChevronRight, Sparkles } from 'lucide-react';
+import { ROUTE_TO_TAB } from '@/types';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { PAGE_TOUR_CONFIG } from './tourConfig';
 
 export function PageTourPromptToast() {
+  const pathname = usePathname();
   const { activeTab, showOnboardingGuide, openOnboardingGuide } = useSpaceVisionStore();
   const [isVisible, setIsVisible] = useState(false);
 
-  const tourMeta = PAGE_TOUR_CONFIG[activeTab] || PAGE_TOUR_CONFIG.landing;
+  const currentTab = ROUTE_TO_TAB[pathname] || activeTab;
+  const tourMeta = PAGE_TOUR_CONFIG[currentTab] || PAGE_TOUR_CONFIG.landing;
 
   useEffect(() => {
-    // If tour is already open, hide the prompt
-    if (showOnboardingGuide) {
+    // If tour is already open or on landing page (handled by main welcome), hide toast
+    if (showOnboardingGuide || currentTab === 'landing') {
       setIsVisible(false);
       return;
     }
@@ -21,7 +25,7 @@ export function PageTourPromptToast() {
     if (typeof window === 'undefined') return;
 
     // Check if user has already dismissed or completed the tour for this page
-    const seen = localStorage.getItem(`spacevision_tour_seen_${activeTab}`);
+    const seen = localStorage.getItem(`spacevision_tour_seen_${currentTab}`);
     if (!seen) {
       const timer = setTimeout(() => {
         setIsVisible(true);
@@ -30,7 +34,7 @@ export function PageTourPromptToast() {
     } else {
       setIsVisible(false);
     }
-  }, [activeTab, showOnboardingGuide]);
+  }, [currentTab, showOnboardingGuide]);
 
   const handleStartTour = () => {
     setIsVisible(false);
@@ -40,7 +44,7 @@ export function PageTourPromptToast() {
   const handleDismiss = () => {
     setIsVisible(false);
     if (typeof window !== 'undefined') {
-      localStorage.setItem(`spacevision_tour_seen_${activeTab}`, 'true');
+      localStorage.setItem(`spacevision_tour_seen_${currentTab}`, 'true');
     }
   };
 

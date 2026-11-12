@@ -236,49 +236,60 @@ export const LandingPageView: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-16">
       {/* 1. HERO SECTION WITH ARCHITECTURAL COMMERCIAL PHOTOGRAPHY BACKGROUND */}
-      <section className="relative overflow-hidden border-b border-slate-200/80 bg-slate-100 pt-12 pb-16 md:pt-16 md:pb-20">
-        {/* Architectural Background Photography with Subtle Vignette & Gradient Overlay */}
+      <section className="relative overflow-hidden border-b border-slate-200/80 bg-slate-900 pt-12 pb-16 md:pt-16 md:pb-20">
+        {/* Architectural Background Photography with Rich Dark Vignette Overlay */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <img
             src="/images/hero-bg.jpg"
             alt="Mặt bằng thương mại SpaceVision AI"
-            className="h-full w-full object-cover object-[center_35%] filter brightness-[0.98] contrast-[1.02]"
+            className="h-full w-full object-cover object-[center_35%]"
           />
-          {/* Dual Layer Gradient: High legibility for text while preserving rich architectural context */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/92 via-white/88 to-slate-50/98 backdrop-blur-[2px]" />
-          <div className="absolute inset-0 bg-dot-grid opacity-25" />
+          {/* High-contrast architectural vignette: keeps building warm & vivid while making white typography 100% crystal clear */}
+          <div
+            className="absolute inset-0 backdrop-blur-[1.5px]"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(15, 23, 42, 0.78) 0%, rgba(15, 23, 42, 0.66) 45%, rgba(15, 23, 42, 0.84) 100%)',
+            }}
+          />
         </div>
 
         <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           {/* Top Architectural Badge & Help Guide Trigger */}
-          <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/95 px-3.5 py-1 text-xs font-semibold text-slate-800 shadow-xs backdrop-blur-sm">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="mb-5 flex flex-wrap items-center justify-center gap-2.5">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-slate-900/75 px-4 py-1.5 text-xs font-semibold text-white shadow-md backdrop-blur-md">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>Hệ thống Khảo sát & Tối ưu Không gian Thương mại Hà Nội</span>
             </div>
             <button
               onClick={() => openOnboardingGuide()}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white/95 px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-100 hover:text-slate-900 transition backdrop-blur-sm cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/40 bg-white/95 px-4 py-1.5 text-xs font-bold text-slate-900 shadow-md hover:bg-white transition backdrop-blur-sm cursor-pointer"
               title="Xem hướng dẫn sử dụng từng bước"
             >
-              <HelpCircle className="h-3.5 w-3.5 text-slate-600" />
+              <HelpCircle className="h-3.5 w-3.5 text-blue-600" />
               <span>Hướng dẫn sử dụng</span>
             </button>
           </div>
 
           {/* Main Headline */}
           <div className="text-center">
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl md:text-5xl lg:text-5xl leading-[1.15]">
+            <h1
+              className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl lg:text-5xl leading-[1.15]"
+              style={{ textShadow: '0 2px 16px rgba(0, 0, 0, 0.55)' }}
+            >
               Không gian thương mại & Mặt bằng kinh doanh đắc địa
             </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-base text-slate-600 sm:text-lg">
+            <p
+              className="mx-auto mt-4 max-w-2xl text-base font-medium text-slate-100 sm:text-lg leading-relaxed"
+              style={{ textShadow: '0 1px 8px rgba(0, 0, 0, 0.5)' }}
+            >
               Khám phá bất động sản thương mại với công nghệ Bản đồ 3D Toà nhà, Digital Twin
               và Tư vấn tối ưu không gian kinh doanh trước khi thuê.
             </p>
           </div>
 
           {/* Central Real Estate Search Box */}
-          <div className="mt-8 rounded-2xl border border-slate-200/90 bg-white/95 p-3.5 sm:p-5 shadow-2xl shadow-slate-900/10 backdrop-blur-md">
+          <div className="mt-8 rounded-2xl border border-white/90 bg-white p-4 sm:p-5 shadow-2xl shadow-slate-950/35">
             {/* Natural language idea input */}
             <div id="tour-search-input" className="relative mb-3.5">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">

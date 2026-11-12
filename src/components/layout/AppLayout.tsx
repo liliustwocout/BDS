@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   ChevronLeft,
@@ -44,23 +44,36 @@ export function AppLayout({ children }: AppLayoutProps) {
     openOnboardingGuide,
   } = useSpaceVisionStore();
 
-  // 1. Synchronize URL pathname -> Zustand activeTab
-  useEffect(() => {
-    const matchedTab = ROUTE_TO_TAB[pathname];
-    if (matchedTab && matchedTab !== activeTab) {
-      setActiveTab(matchedTab);
-    }
-  }, [pathname, activeTab, setActiveTab]);
+  const prevPathnameRef = useRef<string | null>(null);
+  const prevActiveTabRef = useRef<ActiveTab>(activeTab);
 
-  // 2. Synchronize store activeTab -> Next.js router navigation
+  // Conflict-free bidirectional sync between URL pathname and Zustand activeTab
   useEffect(() => {
-    const expectedRoute = TAB_ROUTES[activeTab];
-    if (expectedRoute && pathname !== expectedRoute) {
-      router.push(expectedRoute);
-    }
-  }, [activeTab, pathname, router]);
+    const pathnameChanged = pathname !== prevPathnameRef.current;
+    const activeTabChanged = activeTab !== prevActiveTabRef.current;
 
-  // 3. First-time visitor welcome prompt check
+    if (pathnameChanged) {
+      prevPathnameRef.current = pathname;
+      const matchedTab = ROUTE_TO_TAB[pathname];
+      if (matchedTab) {
+        prevActiveTabRef.current = matchedTab;
+        if (matchedTab !== activeTab) {
+          setActiveTab(matchedTab);
+        }
+      }
+      return;
+    }
+
+    if (activeTabChanged) {
+      prevActiveTabRef.current = activeTab;
+      const expectedRoute = TAB_ROUTES[activeTab];
+      if (expectedRoute && pathname !== expectedRoute) {
+        router.push(expectedRoute);
+      }
+    }
+  }, [pathname, activeTab, setActiveTab, router]);
+
+  // First-time visitor welcome prompt check
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const isDismissed = localStorage.getItem('spacevision_onboarding_dismissed');
@@ -73,7 +86,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     }
   }, [openOnboardingGuide, pathname]);
 
-  // 4. Global Keyboard shortcuts: Alt+0 .. Alt+6
+  // Global Keyboard shortcuts: Alt+0 .. Alt+6
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!e.altKey) return;
@@ -92,16 +105,18 @@ export function AppLayout({ children }: AppLayoutProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [router]);
 
+  const currentTab: ActiveTab = ROUTE_TO_TAB[pathname] || activeTab;
+
   const selectedProperty = useMemo(
     () => properties.find((p) => p.id === selectedPropertyId) || properties[0],
     [properties, selectedPropertyId]
   );
 
   const currentTabMeta = useMemo(() => {
-    return NAV_TABS.find((t) => t.id === activeTab) || NAV_TABS[0];
-  }, [activeTab]);
+    return NAV_TABS.find((t) => t.id === currentTab) || NAV_TABS[0];
+  }, [currentTab]);
 
-  const currentStepIndex = TAB_ORDER.indexOf(activeTab);
+  const currentStepIndex = TAB_ORDER.indexOf(currentTab);
   const prevTab = currentStepIndex > 0 ? NAV_TABS[currentStepIndex - 1] : null;
   const nextTab =
     currentStepIndex < NAV_TABS.length - 1 ? NAV_TABS[currentStepIndex + 1] : null;
