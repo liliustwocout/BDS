@@ -49,7 +49,7 @@ export const NAV_TABS: NavTabConfig[] = [
   {
     id: 'discovery',
     step: '01',
-    label: 'Tìm kiếm & Đề xuất',
+    label: 'Tìm kiếm',
     shortLabel: 'Tìm kiếm',
     shortcut: 'Alt+1',
     icon: Search,
@@ -58,7 +58,7 @@ export const NAV_TABS: NavTabConfig[] = [
   {
     id: 'location',
     step: '02',
-    label: 'Bản đồ 3D toà nhà',
+    label: 'Bản đồ 3D',
     shortLabel: 'Bản đồ 3D',
     shortcut: 'Alt+2',
     icon: MapPin,
@@ -76,7 +76,7 @@ export const NAV_TABS: NavTabConfig[] = [
   {
     id: 'environment',
     step: '04',
-    label: 'Ánh sáng & Môi trường',
+    label: 'Ánh sáng',
     shortLabel: 'Ánh sáng',
     shortcut: 'Alt+4',
     icon: SunMedium,
@@ -85,7 +85,7 @@ export const NAV_TABS: NavTabConfig[] = [
   {
     id: 'studio',
     step: '05',
-    label: 'Thiết kế Setup',
+    label: 'Thiết kế',
     shortLabel: 'Thiết kế',
     shortcut: 'Alt+5',
     icon: Sparkles,
@@ -116,12 +116,10 @@ export const TopNav: React.FC = () => {
   } = useSpaceVisionStore();
 
   const [propertyDropdownOpen, setPropertyDropdownOpen] = useState(false);
-  const [businessDropdownOpen, setBusinessDropdownOpen] = useState(false);
   const [provenanceOpen, setProvenanceOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const propDropdownRef = useRef<HTMLDivElement>(null);
-  const bizDropdownRef = useRef<HTMLDivElement>(null);
 
   const selectedProperty =
     properties.find((p) => p.id === selectedPropertyId) || properties[0];
@@ -134,22 +132,14 @@ export const TopNav: React.FC = () => {
       ) {
         setPropertyDropdownOpen(false);
       }
-      if (
-        bizDropdownRef.current &&
-        !bizDropdownRef.current.contains(e.target as Node)
-      ) {
-        setBusinessDropdownOpen(false);
-      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const businessMeta = BUSINESS_TYPE_META[selectedBusinessType];
-
   return (
     <>
-      <header className="no-print sticky top-0 z-40 h-16 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]">
+      <header className="no-print sticky top-0 z-40 h-14 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]">
         <div className="mx-auto flex h-full max-w-[1920px] items-center justify-between gap-2 px-3 lg:px-6">
           {/* Left: Brand Identity + Active Property Switcher */}
           <div className="flex items-center gap-3">
@@ -178,101 +168,91 @@ export const TopNav: React.FC = () => {
 
             <div className="hidden h-6 w-[1px] bg-slate-200 md:block" />
 
-            {/* Active Property Quick-Switcher Dropdown */}
-            {selectedProperty && (
-              <div className="relative" ref={propDropdownRef}>
-                <button
-                  onClick={() => setPropertyDropdownOpen((prev) => !prev)}
-                  className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-left transition hover:border-slate-300 hover:bg-slate-100/80"
-                  title="Chuyển đổi nhanh mặt bằng đang khảo sát"
-                >
-                  <Building2 className="h-4 w-4 shrink-0 text-slate-600" />
-                  <div className="max-w-[140px] xl:max-w-[200px]">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-mono text-[10px] font-bold text-slate-900">
-                        {selectedProperty.code}
-                      </span>
-                      <span className="truncate text-xs font-semibold text-slate-800">
-                        {selectedProperty.title}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
-                      <span>{selectedProperty.district}</span>
-                      <span>•</span>
-                      <span className="text-emerald-700 font-semibold">
-                        {selectedProperty.monthlyRentMillionVND} tr/th
-                      </span>
-                      <span>•</span>
-                      <span>{selectedProperty.totalAreaSqm}m²</span>
-                    </div>
-                  </div>
-                  <ChevronDown
-                    className={`h-3.5 w-3.5 text-slate-500 transition-transform ${
-                      propertyDropdownOpen ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
+            {/* Active Property Quick-Switcher Pill (Only shown when exploring tools beyond landing) */}
+            {activeTab !== 'landing' && selectedProperty && (
+              <>
+                <div className="hidden h-5 w-[1px] bg-slate-200 md:block" />
+                <div className="relative" ref={propDropdownRef}>
+                  <button
+                    onClick={() => setPropertyDropdownOpen((prev) => !prev)}
+                    className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-left transition hover:border-slate-300 hover:bg-slate-100/90"
+                    title="Chuyển đổi nhanh mặt bằng đang khảo sát"
+                  >
+                    <Building2 className="h-3.5 w-3.5 shrink-0 text-slate-600" />
+                    <span className="font-mono text-xs font-bold text-slate-900">
+                      {selectedProperty.code}
+                    </span>
+                    <span className="text-[11px] text-slate-500 hidden xl:inline">
+                      • {selectedProperty.district}
+                    </span>
+                    <ChevronDown
+                      className={`h-3 w-3 text-slate-500 transition-transform ${
+                        propertyDropdownOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
 
-                {propertyDropdownOpen && (
-                  <div className="absolute left-0 mt-2 w-80 sm:w-96 rounded-xl border border-slate-200 bg-white p-2 shadow-xl z-50">
-                    <div className="mb-1.5 flex items-center justify-between px-2 py-1 border-b border-slate-100">
-                      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                        Chọn mặt bằng khảo sát ({properties.length})
-                      </span>
-                      <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-700 border border-slate-200">
-                        Tọa độ thực Hà Nội
-                      </span>
-                    </div>
-                    <div className="max-h-80 space-y-1 overflow-y-auto pr-1">
-                      {properties.map((prop) => {
-                        const isSelected = prop.id === selectedProperty.id;
-                        return (
-                          <button
-                            key={prop.id}
-                            onClick={() => {
-                              selectProperty(prop.id);
-                              setPropertyDropdownOpen(false);
-                            }}
-                            className={`flex w-full items-start justify-between gap-2 rounded-lg p-2 text-left transition ${
-                              isSelected
-                                ? 'bg-slate-100 border border-slate-300 font-semibold'
-                                : 'hover:bg-slate-50 border border-transparent'
-                            }`}
-                          >
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-mono text-[10px] font-bold text-slate-900">
-                                  {prop.code}
-                                </span>
-                                <span className="truncate text-xs font-semibold text-slate-900">
-                                  {prop.title}
-                                </span>
+                  {propertyDropdownOpen && (
+                    <div className="absolute left-0 mt-2 w-80 sm:w-96 rounded-xl border border-slate-200 bg-white p-2 shadow-xl z-50">
+                      <div className="mb-1.5 flex items-center justify-between px-2 py-1 border-b border-slate-100">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                          Chọn mặt bằng khảo sát ({properties.length})
+                        </span>
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-700 border border-slate-200">
+                          Tọa độ thực Hà Nội
+                        </span>
+                      </div>
+                      <div className="max-h-80 space-y-1 overflow-y-auto pr-1">
+                        {properties.map((prop) => {
+                          const isSelected = prop.id === selectedProperty.id;
+                          return (
+                            <button
+                              key={prop.id}
+                              onClick={() => {
+                                selectProperty(prop.id);
+                                setPropertyDropdownOpen(false);
+                              }}
+                              className={`flex w-full items-start justify-between gap-2 rounded-lg p-2 text-left transition ${
+                                isSelected
+                                  ? 'bg-slate-100 border border-slate-300 font-semibold'
+                                  : 'hover:bg-slate-50 border border-transparent'
+                              }`}
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-mono text-[10px] font-bold text-slate-900">
+                                    {prop.code}
+                                  </span>
+                                  <span className="truncate text-xs font-semibold text-slate-900">
+                                    {prop.title}
+                                  </span>
+                                </div>
+                                <p className="truncate text-[11px] text-slate-500 mt-0.5">
+                                  {prop.address}
+                                </p>
+                                <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-slate-600">
+                                  <span className="text-emerald-700 font-semibold">
+                                    {prop.monthlyRentMillionVND} triệu/tháng
+                                  </span>
+                                  <span>•</span>
+                                  <span>
+                                    {prop.totalAreaSqm}m² ({prop.floorsCount} tầng)
+                                  </span>
+                                  <span>•</span>
+                                  <span>Mặt tiền {prop.frontageMeters}m</span>
+                                </div>
                               </div>
-                              <p className="truncate text-[11px] text-slate-500 mt-0.5">
-                                {prop.address}
-                              </p>
-                              <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-slate-600">
-                                <span className="text-emerald-700 font-semibold">
-                                  {prop.monthlyRentMillionVND} triệu/tháng
-                                </span>
-                                <span>•</span>
-                                <span>
-                                  {prop.totalAreaSqm}m² ({prop.floorsCount} tầng)
-                                </span>
-                                <span>•</span>
-                                <span>Mặt tiền {prop.frontageMeters}m</span>
-                              </div>
-                            </div>
-                            {isSelected && (
-                              <Check className="h-4 w-4 shrink-0 text-slate-900 mt-1" />
-                            )}
-                          </button>
-                        );
-                      })}
+                              {isSelected && (
+                                <Check className="h-4 w-4 shrink-0 text-slate-900 mt-1" />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
 
@@ -291,7 +271,7 @@ export const TopNav: React.FC = () => {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   title={`${tab.label} (${tab.shortcut}) — ${tab.description}`}
-                  className={`group relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition-colors whitespace-nowrap ${
+                  className={`group relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs transition-colors whitespace-nowrap ${
                     isActive
                       ? 'bg-slate-900 text-white font-semibold shadow-xs'
                       : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'
@@ -302,8 +282,7 @@ export const TopNav: React.FC = () => {
                       isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-800'
                     }`}
                   />
-                  <span className="hidden xl:inline">{tab.label}</span>
-                  <span className="inline xl:hidden">{tab.shortLabel}</span>
+                  <span>{tab.label}</span>
 
                   {isComparison && comparedPropertyIds.length > 0 && (
                     <span
@@ -321,80 +300,16 @@ export const TopNav: React.FC = () => {
             })}
           </nav>
 
-          {/* Right: Active Business Model Quick Selector, Data Provenance & Mobile Menu Toggle */}
+          {/* Right: Help Trigger & Mobile Menu Button (Minimalist, No Clutter) */}
           <div className="flex items-center gap-2">
-            {/* Business Model Selector Pill */}
-            <div className="relative hidden xl:block" ref={bizDropdownRef}>
-              <button
-                onClick={() => setBusinessDropdownOpen((prev) => !prev)}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-800 transition hover:border-slate-300 hover:bg-slate-100"
-                title="Mô hình kinh doanh mục tiêu"
-              >
-                <span className="text-[10px] font-medium text-slate-500">
-                  Mô hình:
-                </span>
-                <span className="font-semibold text-slate-900">
-                  {businessMeta?.labelVi || selectedBusinessType}
-                </span>
-                <ChevronDown className="h-3.5 w-3.5 text-slate-500" />
-              </button>
-
-              {businessDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl z-50">
-                  <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-100 mb-1">
-                    Mô hình kinh doanh mục tiêu
-                  </div>
-                  {(Object.keys(BUSINESS_TYPE_META) as BusinessType[]).map(
-                    (bType) => {
-                      const meta = BUSINESS_TYPE_META[bType];
-                      const active = bType === selectedBusinessType;
-                      return (
-                        <button
-                          key={bType}
-                          onClick={() => {
-                            setSelectedBusinessType(bType);
-                            setBusinessDropdownOpen(false);
-                          }}
-                          className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs transition ${
-                            active
-                              ? 'bg-slate-100 text-slate-900 font-semibold'
-                              : 'text-slate-700 hover:bg-slate-50'
-                          }`}
-                        >
-                          <div>
-                            <div>{meta.labelVi}</div>
-                            <div className="text-[10px] text-slate-500">
-                              Diện tích chuẩn: {meta.defaultAreaRange[0]}–
-                              {meta.defaultAreaRange[1]}m²
-                            </div>
-                          </div>
-                          {active && <Check className="h-3.5 w-3.5 text-slate-900" />}
-                        </button>
-                      );
-                    }
-                  )}
-                </div>
-              )}
-            </div>
-
             {/* Interactive Onboarding Guide & Help Trigger */}
             <button
               onClick={() => openOnboardingGuide()}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-900 shadow-xs"
               title="Xem hướng dẫn sử dụng từng bước (Dành cho người mới)"
             >
               <HelpCircle className="h-4 w-4 text-slate-600" />
-              <span className="hidden sm:inline">Hướng dẫn</span>
-            </button>
-
-            {/* Data Provenance Legend Trigger */}
-            <button
-              onClick={() => setProvenanceOpen(true)}
-              className="hidden md:flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
-              title="Xem chú giải Minh bạch Nguồn Dữ liệu"
-            >
-              <ShieldCheck className="h-4 w-4 text-slate-600" />
-              <span>Nguồn dữ liệu</span>
+              <span>Hướng dẫn</span>
             </button>
 
             {/* Mobile / Tablet Menu Button */}
