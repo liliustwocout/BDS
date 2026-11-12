@@ -620,54 +620,9 @@ export function InteractiveMap({
       });
     }
 
-    // 3. Route midpoint HTML badges showing Distance + Travel Time + Honest Status
+    // Clear any obsolete midpoint floating labels to prevent overlapping clusters over central building
     routeLabelMarkersRef.current.forEach((m) => m.remove());
     routeLabelMarkersRef.current = [];
-
-    if (mode === 'location' && activeRoutes.length > 0) {
-      activeRoutes.forEach((route) => {
-        if (!route.geometry || route.geometry.length === 0) return;
-        const midIdx = Math.floor(route.geometry.length / 2);
-        const midLngLat = toLngLat(route.geometry[midIdx]);
-
-        const el = document.createElement('div');
-        el.className = 'pointer-events-auto select-none z-20 animate-fade-in';
-        const distLabel =
-          route.distanceMeters >= 1000
-            ? `${(route.distanceMeters / 1000).toFixed(2)} km`
-            : `${Math.round(route.distanceMeters)} m`;
-        const mins = Math.max(1, Math.round(route.durationSeconds / 60));
-        const modeLabel = transportMode === 'foot' ? 'Đi bộ' : transportMode === 'bike' ? 'Xe máy' : 'Ô tô';
-
-        const badgeStyle = route.isRealRouting
-          ? 'bg-white border-blue-200 text-slate-800 shadow-lg ring-1 ring-blue-100'
-          : 'bg-white border-amber-200 text-slate-800 shadow-lg ring-1 ring-amber-100';
-
-        const tagBadge = route.isRealRouting
-          ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold border border-blue-200">OSRM Thực Tế</span>'
-          : '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-semibold border border-amber-200">Ước Tính Đô Thị</span>';
-
-        el.innerHTML = `
-          <div class="px-3 py-2 rounded-xl border backdrop-blur-md text-xs leading-tight flex flex-col gap-1 ${badgeStyle}">
-            <div class="flex items-center gap-1.5 font-bold text-slate-900 text-[13px]">
-              <span class="inline-block w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
-              <span>${distLabel}</span>
-              <span class="text-slate-400">•</span>
-              <span>~${mins} phút (${modeLabel})</span>
-            </div>
-            <div class="flex items-center justify-between gap-2 mt-0.5">
-              <span class="text-xs text-slate-700 truncate max-w-[150px] font-medium">${route.poiName}</span>
-              ${tagBadge}
-            </div>
-          </div>
-        `;
-
-        const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
-          .setLngLat(midLngLat)
-          .addTo(map);
-        routeLabelMarkersRef.current.push(marker);
-      });
-    }
   }, [
     mapReady,
     mode,
@@ -815,9 +770,10 @@ export function InteractiveMap({
       const propMarker = new maplibregl.Marker({ element: propEl, anchor: 'bottom' })
         .setLngLat(toLngLat(selectedProperty.coordinates))
         .addTo(map);
+      propEl.style.zIndex = '40';
       markersRef.current.push(propMarker);
 
-      // 2. Surrounding Clean POI Pins
+      // 2. Surrounding Clean POI Pins with non-overlapping distance badges
       const visiblePOIs = selectedProperty.nearbyPOIs.filter((poi) =>
         activePOICategories.includes(poi.category)
       );
@@ -825,31 +781,60 @@ export function InteractiveMap({
       visiblePOIs.forEach((poi: POIItem) => {
         const meta = POI_CATEGORY_META[poi.category] || POI_CATEGORY_META.office;
         const isSelectedPOI = selectedPOIIds.includes(poi.id);
+        const activeRoute = activeRoutes.find((r) => r.poiId === poi.id);
+
+        const routeTag = activeRoute
+          ? (() => {
+              const distLabel =
+                activeRoute.distanceMeters >= 1000
+                  ? `${(activeRoute.distanceMeters / 1000).toFixed(1)} km`
+                  : `${Math.round(activeRoute.distanceMeters)} m`;
+              const mins = Math.max(1, Math.round(activeRoute.durationSeconds / 60));
+              return `
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold shadow-2xs ${
+                  isSelectedPOI
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-blue-50 text-blue-700 border border-blue-200'
+                }">
+                  <span>${distLabel}</span>
+                  <span class="opacity-60">•</span>
+                  <span>~${mins}p</span>
+                </span>
+              `;
+            })()
+          : '';
 
         const poiEl = document.createElement('div');
         poiEl.className = 'cursor-pointer group select-none';
-        poiEl.style.zIndex = isSelectedPOI ? '30' : '15';
+        poiEl.style.zIndex = isSelectedPOI ? '35' : activeRoute ? '25' : '15';
 
         poiEl.innerHTML = `
           <div class="relative flex flex-col items-center transition-all duration-150 ${
             isSelectedPOI ? 'scale-110' : 'hover:scale-105'
           }">
             <div
-              class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border shadow-sm text-xs font-semibold transition-all ${
+              class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold transition-all ${
                 isSelectedPOI
-                  ? 'bg-slate-900 text-white border-slate-900 ring-2 ring-blue-400'
-                  : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
+                  ? 'bg-slate-900 text-white border-slate-900 ring-2 ring-blue-500 shadow-xl'
+                  : activeRoute
+                  ? 'bg-white text-slate-900 border-blue-300 ring-2 ring-blue-100 shadow-md'
+                  : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300 shadow-sm'
               }"
             >
               <span
                 class="w-2 h-2 rounded-full shrink-0"
                 style="background-color: ${meta.bgHex};"
               ></span>
-              <span class="max-w-[125px] truncate text-[11px]">${poi.name}</span>
+              <span class="max-w-[130px] truncate text-[11px] font-medium">${poi.name}</span>
+              ${routeTag}
             </div>
             <div
               class="w-2 h-2 rotate-45 -mt-1 border-r border-b ${
-                isSelectedPOI ? 'bg-slate-900 border-slate-900' : 'bg-white border-slate-200'
+                isSelectedPOI
+                  ? 'bg-slate-900 border-slate-900'
+                  : activeRoute
+                  ? 'bg-white border-blue-300'
+                  : 'bg-white border-slate-200'
               }"
             ></div>
           </div>
@@ -877,6 +862,7 @@ export function InteractiveMap({
     selectedProperty,
     activePOICategories,
     selectedPOIIds,
+    activeRoutes,
     selectProperty,
     toggleSelectPOI,
   ]);
