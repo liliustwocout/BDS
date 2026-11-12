@@ -69,10 +69,26 @@ export function InteractiveSpotlightTour() {
     const step = tourSteps[currentStepIndex];
     if (!step) return;
 
-    const el = document.querySelector(step.selector);
+    // Check if target is currently in DOM or needs tab activation
+    let el = document.querySelector(step.selector);
+    if (!el && step.tabTriggerSelector) {
+      const trigger = document.querySelector(step.tabTriggerSelector) as HTMLElement | null;
+      if (trigger) {
+        trigger.click();
+        el = document.querySelector(step.selector);
+      }
+    }
+
     if (!el) {
       requestAnimationFrame(() => {
-        const retryEl = document.querySelector(step.selector);
+        let retryEl = document.querySelector(step.selector);
+        if (!retryEl && step.tabTriggerSelector) {
+          const trigger = document.querySelector(step.tabTriggerSelector) as HTMLElement | null;
+          if (trigger) {
+            trigger.click();
+            retryEl = document.querySelector(step.selector);
+          }
+        }
         if (retryEl) {
           const rect = retryEl.getBoundingClientRect();
           setTargetRect({
@@ -81,6 +97,9 @@ export function InteractiveSpotlightTour() {
             width: rect.width,
             height: rect.height,
           });
+        } else {
+          // Cleanly clear targetRect so tooltip centers and never points to stale elements
+          setTargetRect(null);
         }
       });
       return;
@@ -102,8 +121,24 @@ export function InteractiveSpotlightTour() {
     const step = tourSteps[currentStepIndex];
     if (!step) return;
 
+    // If step needs a tab switch, trigger tab immediately
+    if (step.tabTriggerSelector && !document.querySelector(step.selector)) {
+      const trigger = document.querySelector(step.tabTriggerSelector) as HTMLElement | null;
+      if (trigger) {
+        trigger.click();
+      }
+    }
+
     const timer = setTimeout(() => {
-      const el = document.querySelector(step.selector) as HTMLElement | null;
+      let el = document.querySelector(step.selector) as HTMLElement | null;
+      if (!el && step.tabTriggerSelector) {
+        const trigger = document.querySelector(step.tabTriggerSelector) as HTMLElement | null;
+        if (trigger) {
+          trigger.click();
+          el = document.querySelector(step.selector) as HTMLElement | null;
+        }
+      }
+
       if (el) {
         // 1. Walk up the DOM to scroll any scrollable parent container(s) (overflow-y-auto)
         let curr: HTMLElement | null = el.parentElement;
@@ -124,11 +159,11 @@ export function InteractiveSpotlightTour() {
 
             let targetScrollTop: number;
             if (step.preferredPlacement === 'top') {
-              // Place target towards the lower portion (~60%) so tooltip has space above
-              targetScrollTop = relativeTop - (cHeight * 0.60 - elRect.height / 2);
+              // Place target towards the lower portion (~65%) so tooltip has space above
+              targetScrollTop = relativeTop - (cHeight * 0.65 - elRect.height / 2);
             } else {
-              // Preferred bottom: place target towards the upper portion (~18%) so tooltip has space below
-              targetScrollTop = relativeTop - Math.max(30, cHeight * 0.18);
+              // Preferred bottom: place target towards the upper portion (~16%) so tooltip has space below
+              targetScrollTop = relativeTop - Math.max(24, cHeight * 0.16);
             }
 
             curr.scrollTo({
@@ -149,9 +184,9 @@ export function InteractiveSpotlightTour() {
           let targetWindowScroll: number;
 
           if (step.preferredPlacement === 'top') {
-            targetWindowScroll = targetAbsY - (vh * 0.60 - elRect.height / 2);
+            targetWindowScroll = targetAbsY - (vh * 0.65 - elRect.height / 2);
           } else {
-            targetWindowScroll = targetAbsY - Math.min(vh * 0.22, 160);
+            targetWindowScroll = targetAbsY - Math.min(vh * 0.18, 140);
           }
 
           window.scrollTo({
@@ -170,6 +205,8 @@ export function InteractiveSpotlightTour() {
             // Ignore if unsupported
           }
         }
+      } else {
+        setTargetRect(null);
       }
       updateSpotlightPosition();
     }, 60);
@@ -261,7 +298,8 @@ export function InteractiveSpotlightTour() {
     const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
     const tooltipWidth = Math.min(420, viewportWidth - 32);
 
-    const GAP = 18; // Guaranteed gap between cutout border and tooltip box
+    const curHeight = tooltipRef.current?.offsetHeight || tooltipHeight || 280;
+    const GAP = 14; // Guaranteed gap between cutout border and tooltip box
     const targetTop = targetRect.top - padding;
     const targetBottom = targetRect.top + targetRect.height + padding;
 
@@ -269,18 +307,18 @@ export function InteractiveSpotlightTour() {
     const spaceBelow = viewportHeight - targetBottom;
 
     if (currentStep.preferredPlacement === 'top') {
-      if (spaceAbove >= tooltipHeight + GAP + 12) {
+      if (spaceAbove >= curHeight + GAP + 8) {
         placeAbove = true;
-      } else if (spaceBelow >= tooltipHeight + GAP + 12) {
+      } else if (spaceBelow >= curHeight + GAP + 8) {
         placeAbove = false;
       } else {
         placeAbove = spaceAbove >= spaceBelow;
       }
     } else {
       // Preferred 'bottom'
-      if (spaceBelow >= tooltipHeight + GAP + 12) {
+      if (spaceBelow >= curHeight + GAP + 8) {
         placeAbove = false;
-      } else if (spaceAbove >= tooltipHeight + GAP + 12) {
+      } else if (spaceAbove >= curHeight + GAP + 8) {
         placeAbove = true;
       } else {
         placeAbove = spaceAbove >= spaceBelow;
@@ -289,16 +327,14 @@ export function InteractiveSpotlightTour() {
 
     let top = 0;
     if (placeAbove) {
-      // Strictly ABOVE target: bottom edge of tooltip card is at (targetTop - GAP)
-      top = targetTop - tooltipHeight - GAP;
-      if (top < 12) top = 12;
+      top = targetTop - curHeight - GAP;
     } else {
-      // Strictly BELOW target: top edge of tooltip card is at (targetBottom + GAP)
       top = targetBottom + GAP;
-      if (top + tooltipHeight > viewportHeight - 12) {
-        top = Math.max(12, viewportHeight - tooltipHeight - 12);
-      }
     }
+
+    // STRICT VIEWPORT CLAMPING: Guarantees tooltip NEVER bleeds off the bottom or top of viewport
+    const maxTop = Math.max(12, viewportHeight - curHeight - 14);
+    top = Math.max(12, Math.min(top, maxTop));
 
     // Horizontal centering relative to target element
     let left = targetRect.left + (targetRect.width - tooltipWidth) / 2;
@@ -317,6 +353,8 @@ export function InteractiveSpotlightTour() {
       top: `${Math.round(top)}px`,
       left: `${Math.round(left)}px`,
       width: `${tooltipWidth}px`,
+      maxHeight: 'calc(100vh - 28px)',
+      overflowY: 'auto',
       zIndex: 9995,
       transition: 'top 300ms cubic-bezier(0.16, 1, 0.3, 1), left 300ms cubic-bezier(0.16, 1, 0.3, 1)',
     };
@@ -329,6 +367,8 @@ export function InteractiveSpotlightTour() {
       transform: 'translate(-50%, -50%)',
       width: '420px',
       maxWidth: 'calc(100vw - 32px)',
+      maxHeight: 'calc(100vh - 32px)',
+      overflowY: 'auto',
       zIndex: 9995,
     };
   }

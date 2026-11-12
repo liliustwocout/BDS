@@ -822,6 +822,7 @@ export const BusinessSetupView: React.FC = () => {
           {/* 3 Clean, Uncluttered Studio Navigation Tabs */}
           <div className="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-slate-200/70 p-1 border border-slate-200">
             <button
+              id="tab-studio-concept"
               type="button"
               onClick={() => setStudioTab('concept')}
               className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all ${
@@ -834,6 +835,7 @@ export const BusinessSetupView: React.FC = () => {
               <span className="truncate">1. Mô hình & Style</span>
             </button>
             <button
+              id="tab-studio-furniture"
               type="button"
               onClick={() => setStudioTab('furniture')}
               className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all ${

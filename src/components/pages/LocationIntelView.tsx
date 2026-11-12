@@ -372,6 +372,7 @@ export function LocationIntelView() {
           {/* Focused Tab Switcher */}
           <div className="flex p-1 rounded-xl bg-slate-100 text-sm">
             <button
+              id="tab-location-bi"
               type="button"
               onClick={() => setPanelTab('bi')}
               className={`flex-1 py-2 text-center font-bold rounded-lg transition-all ${
@@ -383,6 +384,7 @@ export function LocationIntelView() {
               Đánh Giá Kinh Doanh AI
             </button>
             <button
+              id="tab-location-pois"
               type="button"
               onClick={() => setPanelTab('pois')}
               className={`flex-1 py-2 text-center font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${

@@ -34,6 +34,7 @@ export interface TourStep {
   icon: React.ComponentType<{ className?: string }>;
   preferredPlacement: 'top' | 'bottom';
   padding: number;
+  tabTriggerSelector?: string;
 }
 
 export interface PageTourMeta {
@@ -203,6 +204,7 @@ export const PAGE_TOUR_CONFIG: Record<ActiveTab, PageTourMeta> = {
         icon: MapPin,
         preferredPlacement: 'bottom',
         padding: 8,
+        tabTriggerSelector: '#tab-location-pois',
       },
       {
         id: 'map-route-list',
@@ -380,6 +382,7 @@ export const PAGE_TOUR_CONFIG: Record<ActiveTab, PageTourMeta> = {
         icon: Sparkles,
         preferredPlacement: 'bottom',
         padding: 8,
+        tabTriggerSelector: '#tab-studio-concept',
       },
       {
         id: 'studio-style',
@@ -393,6 +396,7 @@ export const PAGE_TOUR_CONFIG: Record<ActiveTab, PageTourMeta> = {
         icon: Palette,
         preferredPlacement: 'bottom',
         padding: 8,
+        tabTriggerSelector: '#tab-studio-concept',
       },
       {
         id: 'studio-budget',
@@ -406,6 +410,7 @@ export const PAGE_TOUR_CONFIG: Record<ActiveTab, PageTourMeta> = {
         icon: Calculator,
         preferredPlacement: 'top',
         padding: 8,
+        tabTriggerSelector: '#tour-studio-budget',
       },
       {
         id: 'studio-export',
@@ -419,6 +424,7 @@ export const PAGE_TOUR_CONFIG: Record<ActiveTab, PageTourMeta> = {
         icon: FileSpreadsheet,
         preferredPlacement: 'top',
         padding: 6,
+        tabTriggerSelector: '#tour-studio-budget',
       },
     ],
   },
