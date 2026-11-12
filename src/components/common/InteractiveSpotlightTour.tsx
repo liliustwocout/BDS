@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import {
   X,
   ChevronRight,
@@ -27,8 +27,8 @@ interface TourStep {
   title: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
-  preferredPlacement?: 'top' | 'bottom';
-  padding?: number;
+  preferredPlacement: 'top' | 'bottom';
+  padding: number;
 }
 
 const TOUR_STEPS: TourStep[] = [
@@ -68,32 +68,32 @@ const TOUR_STEPS: TourStep[] = [
     description:
       'Mỗi mặt bằng hiển thị 4 chỉ số quan trọng nhất: Giá thuê (triệu/tháng), Diện tích (m²), Mặt tiền (m) và Số tầng, giúp bạn nắm bắt nhanh hiện trạng.',
     icon: Building2,
-    preferredPlacement: 'top',
+    preferredPlacement: 'bottom',
     padding: 8,
   },
   {
-    id: '3d-actions',
+    id: 'landlord-contact',
     stepNumber: 4,
     totalSteps: 5,
-    selector: '#tour-3d-actions',
-    badge: 'Bước 4/5 • Khảo sát 3D',
-    title: 'Khảo sát Bản đồ 3D & Không gian 3D Twin',
-    description:
-      'Bấm "Bản đồ 3D" để xem khối toà nhà lập thể và tiện ích quy hoạch; hoặc "Không gian 3D" để bóc tách từng tầng (Dollhouse) và đo kích thước phòng.',
-    icon: Box,
-    preferredPlacement: 'top',
-    padding: 6,
-  },
-  {
-    id: 'landlord-contact',
-    stepNumber: 5,
-    totalSteps: 5,
     selector: '#tour-landlord-contact',
-    badge: 'Bước 5/5 • Liên hệ chính chủ',
+    badge: 'Bước 4/5 • Liên hệ chính chủ',
     title: 'Kết nối Chủ nhà & Đặt lịch hẹn xem',
     description:
       'Gọi hotline trực tiếp, chat Zalo 1 chạm hoặc đặt lịch hẹn khảo sát thực địa với chủ nhà hoặc ban quản lý toà nhà mà không qua môi giới trung gian.',
     icon: PhoneCall,
+    preferredPlacement: 'top',
+    padding: 6,
+  },
+  {
+    id: '3d-actions',
+    stepNumber: 5,
+    totalSteps: 5,
+    selector: '#tour-3d-actions',
+    badge: 'Bước 5/5 • Khảo sát 3D',
+    title: 'Khảo sát Bản đồ 3D & Không gian 3D Twin',
+    description:
+      'Bấm "Bản đồ 3D" để xem khối toà nhà lập thể và tiện ích quy hoạch; hoặc "Không gian 3D" để bóc tách từng tầng (Dollhouse) và đo kích thước phòng.',
+    icon: Box,
     preferredPlacement: 'top',
     padding: 6,
   },
@@ -116,7 +116,7 @@ export function InteractiveSpotlightTour() {
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<ElementRect | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [tooltipHeight, setTooltipHeight] = useState(250);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   // If tour is triggered but user is on another tab, switch to 'landing' first
@@ -126,7 +126,17 @@ export function InteractiveSpotlightTour() {
     }
   }, [showOnboardingGuide, activeTab, setActiveTab]);
 
-  // Measure and scroll target element into view smoothly
+  // Dynamically measure actual tooltip height
+  useLayoutEffect(() => {
+    if (tooltipRef.current) {
+      const h = tooltipRef.current.offsetHeight;
+      if (h > 0 && Math.abs(h - tooltipHeight) > 4) {
+        setTooltipHeight(h);
+      }
+    }
+  });
+
+  // Measure target element position smoothly
   const updateSpotlightPosition = useCallback(() => {
     if (!showOnboardingGuide) return;
     const step = TOUR_STEPS[currentStepIndex];
@@ -134,7 +144,6 @@ export function InteractiveSpotlightTour() {
 
     const el = document.querySelector(step.selector);
     if (!el) {
-      // Element may not be rendered yet, retry in next frame
       requestAnimationFrame(() => {
         const retryEl = document.querySelector(step.selector);
         if (retryEl) {
@@ -159,28 +168,40 @@ export function InteractiveSpotlightTour() {
     });
   }, [showOnboardingGuide, currentStepIndex]);
 
-  // On step change or window scroll/resize, smoothly update coordinates
+  // On step change or window scroll/resize, smoothly scroll target and update coordinates
   useEffect(() => {
     if (!showOnboardingGuide) return;
 
     const step = TOUR_STEPS[currentStepIndex];
     if (!step) return;
 
-    setIsTransitioning(true);
-
     const timer = setTimeout(() => {
       const el = document.querySelector(step.selector);
       if (el) {
-        // Smooth scroll to target element
-        el.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-          inline: 'nearest',
-        });
+        const elRect = el.getBoundingClientRect();
+        const vh = window.innerHeight;
+        const targetAbsY = window.scrollY + elRect.top;
+
+        if (step.preferredPlacement === 'top') {
+          // Scroll target so it rests in the lower portion (~65% of screen height)
+          // Leaving ample room above for tooltip without overlapping
+          const targetScroll = targetAbsY - (vh * 0.65 - elRect.height / 2);
+          window.scrollTo({
+            top: Math.max(0, targetScroll),
+            behavior: 'smooth',
+          });
+        } else {
+          // preferred 'bottom': Scroll target so it rests in the upper portion (~24% of screen height)
+          // Leaving ample room below for tooltip without overlapping
+          const targetScroll = targetAbsY - vh * 0.24;
+          window.scrollTo({
+            top: Math.max(0, targetScroll),
+            behavior: 'smooth',
+          });
+        }
       }
       updateSpotlightPosition();
-      setIsTransitioning(false);
-    }, 50);
+    }, 60);
 
     const handleUpdate = () => {
       updateSpotlightPosition();
@@ -189,9 +210,9 @@ export function InteractiveSpotlightTour() {
     window.addEventListener('resize', handleUpdate, { passive: true });
     window.addEventListener('scroll', handleUpdate, { passive: true });
 
-    // Poll a few times after scroll to lock onto final position
-    const interval = setInterval(updateSpotlightPosition, 100);
-    const stopInterval = setTimeout(() => clearInterval(interval), 600);
+    // Poll to track smooth scrolling until complete
+    const interval = setInterval(updateSpotlightPosition, 50);
+    const stopInterval = setTimeout(() => clearInterval(interval), 650);
 
     return () => {
       clearTimeout(timer);
@@ -251,51 +272,78 @@ export function InteractiveSpotlightTour() {
   const isLastStep = currentStepIndex === TOUR_STEPS.length - 1;
   const padding = currentStep.padding || 8;
 
-  // Compute Tooltip Popover Coordinates
+  // Exact Clearance Geometry: Guarantees tooltip NEVER overlaps the highlighted target
   let tooltipStyle: React.CSSProperties = {
     position: 'fixed',
     zIndex: 9995,
   };
+
+  let placeAbove = false;
+  let arrowLeftPercent = 50;
 
   if (targetRect) {
     const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
     const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
     const tooltipWidth = Math.min(420, viewportWidth - 32);
 
-    // Prefer bottom placement unless target is near viewport bottom
-    const spaceBelow = viewportHeight - (targetRect.top + targetRect.height + padding);
-    const spaceAbove = targetRect.top - padding;
+    const GAP = 18; // Guaranteed gap between cutout border and tooltip box
+    const targetTop = targetRect.top - padding;
+    const targetBottom = targetRect.top + targetRect.height + padding;
 
-    let placeAbove = false;
+    const spaceAbove = targetTop;
+    const spaceBelow = viewportHeight - targetBottom;
+
     if (currentStep.preferredPlacement === 'top') {
-      placeAbove = spaceAbove > 200 || spaceAbove > spaceBelow;
+      if (spaceAbove >= tooltipHeight + GAP + 12) {
+        placeAbove = true;
+      } else if (spaceBelow >= tooltipHeight + GAP + 12) {
+        placeAbove = false;
+      } else {
+        placeAbove = spaceAbove >= spaceBelow;
+      }
     } else {
-      placeAbove = spaceBelow < 220 && spaceAbove > 220;
+      // Preferred 'bottom'
+      if (spaceBelow >= tooltipHeight + GAP + 12) {
+        placeAbove = false;
+      } else if (spaceAbove >= tooltipHeight + GAP + 12) {
+        placeAbove = true;
+      } else {
+        placeAbove = spaceAbove >= spaceBelow;
+      }
     }
 
     let top = 0;
     if (placeAbove) {
-      top = Math.max(16, targetRect.top - padding - 210);
+      // Strictly ABOVE target: bottom edge of tooltip card is at (targetTop - GAP)
+      top = targetTop - tooltipHeight - GAP;
+      if (top < 12) top = 12;
     } else {
-      top = Math.min(viewportHeight - 220, targetRect.top + targetRect.height + padding + 14);
+      // Strictly BELOW target: top edge of tooltip card is at (targetBottom + GAP)
+      top = targetBottom + GAP;
+      if (top + tooltipHeight > viewportHeight - 12) {
+        top = Math.max(12, viewportHeight - tooltipHeight - 12);
+      }
     }
 
-    // Align left with target, clamp within screen
-    let left = targetRect.left;
+    // Horizontal centering relative to target element
+    let left = targetRect.left + (targetRect.width - tooltipWidth) / 2;
+    if (left < 16) left = 16;
     if (left + tooltipWidth > viewportWidth - 16) {
       left = viewportWidth - tooltipWidth - 16;
     }
-    if (left < 16) {
-      left = 16;
-    }
+
+    // Arrow alignment pointing at target center
+    const targetCenter = targetRect.left + targetRect.width / 2;
+    const arrowX = targetCenter - left;
+    arrowLeftPercent = Math.max(28, Math.min(tooltipWidth - 28, arrowX));
 
     tooltipStyle = {
       position: 'fixed',
-      top: `${top}px`,
-      left: `${left}px`,
+      top: `${Math.round(top)}px`,
+      left: `${Math.round(left)}px`,
       width: `${tooltipWidth}px`,
       zIndex: 9995,
-      transition: 'all 350ms cubic-bezier(0.16, 1, 0.3, 1)',
+      transition: 'top 300ms cubic-bezier(0.16, 1, 0.3, 1), left 300ms cubic-bezier(0.16, 1, 0.3, 1)',
     };
   } else {
     // Fallback: center in screen if rect not measured yet
@@ -319,28 +367,26 @@ export function InteractiveSpotlightTour() {
     >
       {/* 1. Backdrop Click Shield (prevents accidental clicks on underlying links during tour) */}
       <div
-        onClick={handleSkip}
-        className="fixed inset-0 z-[9991] bg-transparent cursor-default"
-        title="Bấm bên ngoài để bỏ qua hướng dẫn"
+        className="fixed inset-0 z-[9991] bg-transparent"
       />
 
-      {/* 2. Spotlight Cutout Box with 9999px Box Shadow (Smoothly morphs to target element) */}
+      {/* 2. Spotlight Cutout Box with 9999px Box Shadow (Illuminates target element, darkens surroundings) */}
       {targetRect && (
         <div
           style={{
             position: 'fixed',
-            top: `${targetRect.top - padding}px`,
-            left: `${targetRect.left - padding}px`,
-            width: `${targetRect.width + padding * 2}px`,
-            height: `${targetRect.height + padding * 2}px`,
-            borderRadius: '12px',
-            boxShadow: '0 0 0 9999px rgba(15, 23, 42, 0.78), 0 0 20px rgba(255, 255, 255, 0.4)',
-            border: '2px solid rgba(255, 255, 255, 0.95)',
+            top: `${Math.round(targetRect.top - padding)}px`,
+            left: `${Math.round(targetRect.left - padding)}px`,
+            width: `${Math.round(targetRect.width + padding * 2)}px`,
+            height: `${Math.round(targetRect.height + padding * 2)}px`,
+            borderRadius: '14px',
+            boxShadow: '0 0 0 9999px rgba(15, 23, 42, 0.78), 0 0 30px rgba(56, 189, 248, 0.55)',
+            border: '2.5px solid rgba(56, 189, 248, 0.95)',
             pointerEvents: 'none',
             zIndex: 9992,
-            transition: 'all 400ms cubic-bezier(0.16, 1, 0.3, 1)',
+            transition: 'all 350ms cubic-bezier(0.16, 1, 0.3, 1)',
           }}
-          className="ring-4 ring-slate-900/40"
+          className="ring-4 ring-sky-400/30"
         />
       )}
 
@@ -349,15 +395,51 @@ export function InteractiveSpotlightTour() {
         ref={tooltipRef}
         style={tooltipStyle}
         onClick={(e) => e.stopPropagation()}
-        className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-2xl text-slate-900 animate-fade-in"
+        className="relative rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-2xl text-slate-900 animate-fade-in"
       >
+        {/* Downward pointer arrow (when tooltip is strictly above target) */}
+        {targetRect && placeAbove && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '-8px',
+              left: `${arrowLeftPercent}px`,
+              transform: 'translateX(-50%) rotate(45deg)',
+              width: '16px',
+              height: '16px',
+              backgroundColor: '#ffffff',
+              borderRight: '1.5px solid #cbd5e1',
+              borderBottom: '1.5px solid #cbd5e1',
+              zIndex: 9996,
+            }}
+          />
+        )}
+
+        {/* Upward pointer arrow (when tooltip is strictly below target) */}
+        {targetRect && !placeAbove && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '-8px',
+              left: `${arrowLeftPercent}px`,
+              transform: 'translateX(-50%) rotate(45deg)',
+              width: '16px',
+              height: '16px',
+              backgroundColor: '#ffffff',
+              borderLeft: '1.5px solid #cbd5e1',
+              borderTop: '1.5px solid #cbd5e1',
+              zIndex: 9996,
+            }}
+          />
+        )}
+
         {/* Top Header of Card */}
         <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5 mb-3">
           <div className="flex items-center gap-2 min-w-0">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white shadow-xs">
               <StepIcon className="h-4 w-4" />
             </div>
-            <span className="rounded bg-slate-100 px-2.5 py-1 font-mono text-xs font-bold text-slate-700 border border-slate-200">
+            <span className="rounded bg-sky-50 px-2.5 py-1 font-mono text-xs font-bold text-sky-700 border border-sky-200">
               {currentStep.badge}
             </span>
           </div>
@@ -373,7 +455,7 @@ export function InteractiveSpotlightTour() {
         </div>
 
         {/* Content Body */}
-        <div className="space-y-2 mb-4">
+        <div className="space-y-1.5 mb-4">
           <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
             {currentStep.title}
           </h3>
@@ -416,7 +498,7 @@ export function InteractiveSpotlightTour() {
 
             <button
               onClick={handleNext}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-xs sm:text-sm font-bold text-white hover:bg-slate-800 transition shadow-xs"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-xs sm:text-sm font-bold text-white hover:bg-slate-800 transition shadow-xs active:scale-[0.98]"
             >
               {isLastStep ? (
                 <>
