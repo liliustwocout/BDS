@@ -447,9 +447,9 @@ export function InteractiveSpotlightTour() {
           <button
             onClick={handleSkip}
             className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs sm:text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition"
-            title="Bỏ qua hướng dẫn (Để sau)"
+            title="Bỏ qua hướng dẫn"
           >
-            <span>Bỏ qua (Để sau)</span>
+            <span>Bỏ qua</span>
             <X className="h-4 w-4" />
           </button>
         </div>

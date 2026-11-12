@@ -289,9 +289,9 @@ export function OnboardingGuideModal() {
             <button
               onClick={handleDismiss}
               className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition shadow-xs"
-              title="Bỏ qua hướng dẫn (Để sau)"
+              title="Bỏ qua hướng dẫn"
             >
-              <span>Bỏ qua (Để sau)</span>
+              <span>Bỏ qua</span>
               <X className="h-3.5 w-3.5 text-slate-400" />
             </button>
           </div>
@@ -577,7 +577,7 @@ export function OnboardingGuideModal() {
               onClick={handleDismiss}
               className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition"
             >
-              Bỏ qua (Để sau)
+              Bỏ qua
             </button>
 
             {!isFirstStep && (
