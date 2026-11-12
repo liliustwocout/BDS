@@ -134,7 +134,7 @@ export function DiscoveryView() {
   };
 
   return (
-    <div className="relative flex w-full h-[calc(100vh-3.5rem)] bg-slate-50 text-slate-900 overflow-hidden">
+    <div className="relative flex w-full h-full bg-slate-50 text-slate-900 overflow-hidden">
       {/* Collapsible Left Discovery Sidebar */}
       <aside
         className={`relative z-20 flex flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out ${

@@ -14,7 +14,6 @@ import { ActiveTab, TAB_ROUTES, ROUTE_TO_TAB } from '@/types';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { TopNav, NAV_TABS } from '@/components/layout/TopNav';
 import { InteractiveSpotlightTour } from '@/components/common/InteractiveSpotlightTour';
-import { PageTourPromptToast } from '@/components/common/PageTourPromptToast';
 
 const TAB_ORDER: ActiveTab[] = [
   'landing',
@@ -41,11 +40,15 @@ export function AppLayout({ children }: AppLayoutProps) {
     selectedPropertyId,
     comparedPropertyIds,
     toggleCompareProperty,
+    showOnboardingGuide,
     openOnboardingGuide,
+    closeOnboardingGuide,
   } = useSpaceVisionStore();
 
   const prevPathnameRef = useRef<string | null>(null);
   const prevActiveTabRef = useRef<ActiveTab>(activeTab);
+
+  const currentTab: ActiveTab = ROUTE_TO_TAB[pathname] || activeTab;
 
   // Conflict-free bidirectional sync between URL pathname and Zustand activeTab
   useEffect(() => {
@@ -54,6 +57,10 @@ export function AppLayout({ children }: AppLayoutProps) {
 
     if (pathnameChanged) {
       prevPathnameRef.current = pathname;
+      // If a tour was open on previous page, safely close it on route transition
+      if (showOnboardingGuide) {
+        closeOnboardingGuide();
+      }
       const matchedTab = ROUTE_TO_TAB[pathname];
       if (matchedTab) {
         prevActiveTabRef.current = matchedTab;
@@ -71,20 +78,26 @@ export function AppLayout({ children }: AppLayoutProps) {
         router.push(expectedRoute);
       }
     }
-  }, [pathname, activeTab, setActiveTab, router]);
+  }, [pathname, activeTab, setActiveTab, router, showOnboardingGuide, closeOnboardingGuide]);
 
-  // First-time visitor welcome prompt check
+  // Auto-launch contextual tour on first visit to ANY page
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isDismissed = localStorage.getItem('spacevision_onboarding_dismissed');
-      if (!isDismissed && pathname === '/') {
-        const timer = setTimeout(() => {
-          openOnboardingGuide();
-        }, 800);
-        return () => clearTimeout(timer);
-      }
+    if (typeof window === 'undefined') return;
+
+    const pageSeenKey = `spacevision_tour_seen_${currentTab}`;
+    const hasSeenPage = localStorage.getItem(pageSeenKey);
+    const hasDismissedLanding =
+      currentTab === 'landing' &&
+      localStorage.getItem('spacevision_onboarding_dismissed');
+
+    if (!hasSeenPage && !hasDismissedLanding) {
+      // Delay slightly (700ms) to ensure views and 3D scenes mount into the DOM
+      const timer = setTimeout(() => {
+        openOnboardingGuide();
+      }, 700);
+      return () => clearTimeout(timer);
     }
-  }, [openOnboardingGuide, pathname]);
+  }, [currentTab, openOnboardingGuide]);
 
   // Global Keyboard shortcuts: Alt+0 .. Alt+6
   useEffect(() => {
@@ -105,8 +118,6 @@ export function AppLayout({ children }: AppLayoutProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [router]);
 
-  const currentTab: ActiveTab = ROUTE_TO_TAB[pathname] || activeTab;
-
   const selectedProperty = useMemo(
     () => properties.find((p) => p.id === selectedPropertyId) || properties[0],
     [properties, selectedPropertyId]
@@ -126,22 +137,33 @@ export function AppLayout({ children }: AppLayoutProps) {
     : false;
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
+    <div
+      className={`flex flex-col bg-slate-50 text-slate-900 ${
+        pathname !== '/'
+          ? 'h-screen overflow-hidden print:h-auto print:overflow-visible'
+          : 'min-h-screen'
+      }`}
+    >
       {/* Top Architectural Navigation System */}
       <TopNav />
 
       {/* Main Page View Slot */}
-      <main className="relative flex-1 overflow-x-hidden">{children}</main>
+      <main
+        className={`relative flex-1 min-h-0 ${
+          pathname !== '/'
+            ? 'overflow-hidden print:overflow-visible'
+            : 'overflow-x-hidden'
+        }`}
+      >
+        {children}
+      </main>
 
       {/* Interactive Contextual Spotlight Tour for Current Page */}
       <InteractiveSpotlightTour />
 
-      {/* Subtle First-Time Visit Prompt Toast for Each Specialized Page */}
-      <PageTourPromptToast />
-
       {/* Bottom Contextual Workflow Bar (Active when exploring tools beyond landing) */}
       {pathname !== '/' && (
-        <footer className="no-print sticky bottom-0 z-30 h-11 w-full border-t border-slate-200 bg-white/95 px-3 lg:px-5 backdrop-blur-md shadow-[0_-1px_3px_0_rgba(0,0,0,0.03)]">
+        <footer className="no-print shrink-0 h-11 w-full border-t border-slate-200 bg-white/95 px-3 lg:px-5 backdrop-blur-md shadow-[0_-1px_3px_0_rgba(0,0,0,0.03)]">
           <div className="mx-auto flex h-full max-w-[1920px] items-center justify-between gap-3 text-xs">
             {/* Left: Current Step Progress & Active Property Context */}
             <div className="flex items-center gap-3 min-w-0">

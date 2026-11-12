@@ -144,7 +144,7 @@ export const TopNav: React.FC = () => {
 
   return (
     <>
-      <header className="no-print sticky top-0 z-40 h-14 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]">
+      <header className="no-print shrink-0 sticky top-0 z-40 h-14 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]">
         <div className="mx-auto flex h-full max-w-[1920px] items-center justify-between gap-2 px-3 lg:px-6">
           {/* Left: Brand Identity + Active Property Switcher */}
           <div className="flex items-center gap-3">

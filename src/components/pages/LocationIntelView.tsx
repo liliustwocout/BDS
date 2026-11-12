@@ -188,7 +188,7 @@ export function LocationIntelView() {
   if (!selectedProperty) return null;
 
   return (
-    <div className="relative flex w-full h-[calc(100vh-3.5rem)] bg-slate-100 text-slate-900 overflow-hidden">
+    <div className="relative flex w-full h-full bg-slate-100 text-slate-900 overflow-hidden">
       {/* Center/Left: Large Interactive 3D Map */}
       <main className={`relative flex-1 h-full ${mobileView === 'panel' ? 'hidden md:block' : 'block'}`}>
         {panelCollapsed && (

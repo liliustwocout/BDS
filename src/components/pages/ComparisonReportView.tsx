@@ -168,7 +168,7 @@ export function ComparisonReportView() {
   };
 
   return (
-    <div className="w-full min-h-[calc(100vh-4rem)] bg-slate-50 text-slate-800 p-4 md:p-6 lg:p-8 print:p-6 print:bg-white print:text-slate-900">
+    <div className="w-full h-full overflow-y-auto bg-slate-50 text-slate-800 p-4 md:p-6 lg:p-8 print:h-auto print:overflow-visible print:p-6 print:bg-white print:text-slate-900">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Print-Only Professional Cover / Header */}
         <div className="hidden print:block border-b-2 border-slate-800 pb-3 mb-4">

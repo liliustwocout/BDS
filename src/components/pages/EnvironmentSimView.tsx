@@ -231,7 +231,7 @@ export function EnvironmentSimView() {
   }
 
   return (
-    <div className="relative flex h-[calc(100vh-3.5rem)] w-full overflow-hidden bg-slate-100 text-slate-900">
+    <div className="relative flex h-full w-full overflow-hidden bg-slate-100 text-slate-900">
       {/* MAIN 3D ENVIRONMENTAL VIEWPORT */}
       <div className="relative flex-1 flex flex-col h-full overflow-hidden">
         {/* TOP FLOATING CONTROLS: WEATHER + SEASON + AUTO LIGHTS */}

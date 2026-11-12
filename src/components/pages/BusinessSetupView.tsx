@@ -474,7 +474,7 @@ export const BusinessSetupView: React.FC = () => {
     'Hỗ trợ 15 ngày setup miễn phí & bàn giao thô hoàn thiện';
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] w-full flex-col lg:flex-row overflow-hidden bg-slate-100">
+    <div className="flex h-full w-full flex-col lg:flex-row overflow-hidden bg-slate-100">
       {/* ======================================================== */}
       {/* LEFT: 65% Interactive 3D / 2D Space Preview Viewport     */}
       {/* ======================================================== */}
