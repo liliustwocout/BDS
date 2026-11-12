@@ -191,34 +191,6 @@ export function LocationIntelView() {
     <div className="relative flex w-full h-[calc(100vh-3.5rem)] bg-slate-100 text-slate-900 overflow-hidden">
       {/* Center/Left: Large Interactive 3D Map */}
       <main className={`relative flex-1 h-full ${mobileView === 'panel' ? 'hidden md:block' : 'block'}`}>
-        {/* Floating Top Bar: Location Intelligence Actions */}
-        <div className="absolute top-3 left-3 z-30 flex flex-wrap items-center gap-2 pointer-events-auto">
-          <button
-            type="button"
-            onClick={() => handleRouteKeyPOIs()}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/95 hover:bg-white border border-slate-200 text-xs sm:text-sm font-bold text-slate-900 shadow-md backdrop-blur-md transition hover:border-slate-300 active:scale-95"
-            title="Tự động vẽ và tạo hiệu ứng đường đi ra các tiện ích trọng điểm gần nhất"
-          >
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
-            </span>
-            <span>Khảo sát tiện ích tiêu biểu</span>
-          </button>
-
-          {activeRoutes.length > 0 && (
-            <button
-              type="button"
-              onClick={() => handleClearRoutes()}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/95 hover:bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 shadow-md backdrop-blur-md transition"
-              title="Xoá tất cả lộ trình"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Xoá đường đi</span>
-            </button>
-          )}
-        </div>
-
         {panelCollapsed && (
           <button
             type="button"
@@ -234,6 +206,35 @@ export function LocationIntelView() {
           mode="location"
           flyToRouteId={flyTargetRouteId}
           onClearFlyToRoute={() => setFlyTargetRouteId(null)}
+          extraControls={
+            <div className="flex items-center bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg p-1 shadow-sm">
+              <button
+                id="tour-map-key-pois"
+                type="button"
+                onClick={() => handleRouteKeyPOIs()}
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-50 rounded-md transition-all active:scale-95"
+                title="Tự động vẽ và tạo hiệu ứng đường đi ra các tiện ích trọng điểm gần nhất"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                </span>
+                <span>Khảo sát tiện ích tiêu biểu</span>
+              </button>
+
+              {activeRoutes.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => handleClearRoutes()}
+                  className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors ml-0.5"
+                  title="Xoá tất cả lộ trình"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Xoá đường</span>
+                </button>
+              )}
+            </div>
+          }
         />
       </main>
 
@@ -537,6 +538,41 @@ export function LocationIntelView() {
         {/* Tab 2: POI Categories & Route Planner */}
         {panelTab === 'pois' && (
           <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50/50">
+            {/* Quick Action Banner: Khảo sát tiện ích tiêu biểu */}
+            <div className="p-3 rounded-xl bg-gradient-to-r from-blue-50/90 via-sky-50/70 to-indigo-50/90 border border-blue-200/90 flex items-center justify-between gap-2 shadow-xs">
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                  </span>
+                  <span>Khảo sát tiện ích tiêu biểu</span>
+                </div>
+                <p className="text-[11px] text-blue-700/80 mt-0.5 truncate">
+                  Tự động kết nối 3 tiện ích gần nhất
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleRouteKeyPOIs()}
+                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition shadow-xs active:scale-95"
+                >
+                  Vẽ lộ trình
+                </button>
+                {activeRoutes.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleClearRoutes()}
+                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                    title="Xoá tất cả lộ trình"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Transport Mode Bar */}
             <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-xs">
               <div className="flex items-center justify-between text-xs">

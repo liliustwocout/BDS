@@ -46,6 +46,7 @@ export interface InteractiveMapProps {
   className?: string;
   flyToRouteId?: string | null;
   onClearFlyToRoute?: () => void;
+  extraControls?: React.ReactNode;
 }
 
 type BasemapTheme = 'streets' | 'hybrid' | 'osm';
@@ -237,6 +238,7 @@ export function InteractiveMap({
   className = '',
   flyToRouteId,
   onClearFlyToRoute,
+  extraControls,
 }: InteractiveMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -1104,14 +1106,14 @@ export function InteractiveMap({
       <div ref={mapContainerRef} className="w-full h-full" />
 
       {/* Top Map Control Bar */}
-      <div className="absolute top-3 left-3 z-20 flex flex-wrap items-center gap-2 pointer-events-auto">
+      <div className="absolute top-3 left-3 z-20 flex flex-wrap items-center gap-2 pointer-events-auto max-w-[calc(100%-1rem)]">
         {/* 3D Buildings & Tilt Controls */}
         <div className="flex items-center bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg p-1 shadow-sm">
           <button
             id="tour-map-3d-toggle"
             type="button"
             onClick={handleToggle3D}
-            title={is3DActive ? 'Chuyển sang bản đồ phẳng 2D (Góc nhìn từ trên xuống)' : 'Chuyển sang góc nhìn nghiêng 3D Toà Nhà'}
+            title={is3DActive ? 'Chuyển sang bản đồ phẳng 2D (Góc nhìn từ trên xuống 0°)' : 'Chuyển đổi góc nhìn 3D Perspective (55°)'}
             className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
               is3DActive
                 ? 'bg-blue-600 text-white shadow-sm'
@@ -1145,6 +1147,9 @@ export function InteractiveMap({
             <Compass className="w-4 h-4" />
           </button>
         </div>
+
+        {/* Extra contextual controls from parent (e.g. Khảo sát tiện ích tiêu biểu) */}
+        {extraControls}
 
         {/* Basemap Switcher */}
         <div className="flex items-center bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg p-1 shadow-sm">
