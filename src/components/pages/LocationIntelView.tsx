@@ -30,7 +30,6 @@ import {
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { generateLocationBIReport, BUSINESS_TYPE_META } from '@/lib/aiEngine';
 import { InteractiveMap, POI_CATEGORY_META } from '@/components/map/InteractiveMap';
-import { UrbanSimulation3D } from '@/components/three/UrbanSimulation3D';
 import type { BusinessType, POICategory, TransportMode } from '@/types';
 
 export interface POIBucket {
@@ -113,7 +112,6 @@ export function LocationIntelView() {
   const [panelTab, setPanelTab] = useState<'bi' | 'pois'>('pois');
   const [panelCollapsed, setPanelCollapsed] = useState(false);
   const [mobileView, setMobileView] = useState<'map' | 'panel'>('map');
-  const [mapViewMode, setMapViewMode] = useState<'urban_sim' | 'maplibre'>('urban_sim');
   const [flyTargetRouteId, setFlyTargetRouteId] = useState<string | null>(null);
 
   const userClearedRoutesRef = useRef(false);
@@ -191,67 +189,33 @@ export function LocationIntelView() {
 
   return (
     <div className="relative flex w-full h-[calc(100vh-3.5rem)] bg-slate-100 text-slate-900 overflow-hidden">
-      {/* Center/Left: Large Interactive 3D Map or Urban Simulation */}
+      {/* Center/Left: Large Interactive 3D Map */}
       <main className={`relative flex-1 h-full ${mobileView === 'panel' ? 'hidden md:block' : 'block'}`}>
-        {/* Floating Top Bar: Mode Switcher (Urban Simulation 3D vs MapLibre) & Actions */}
+        {/* Floating Top Bar: Location Intelligence Actions */}
         <div className="absolute top-3 left-3 z-30 flex flex-wrap items-center gap-2 pointer-events-auto">
-          {/* View Mode Toggle: Urban Simulation (Vehicles & Pedestrians) vs MapLibre */}
-          <div className="flex items-center gap-1 p-1 rounded-2xl bg-slate-900/90 border border-slate-700 shadow-xl backdrop-blur-md">
+          <button
+            type="button"
+            onClick={() => handleRouteKeyPOIs()}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/95 hover:bg-white border border-slate-200 text-xs sm:text-sm font-bold text-slate-900 shadow-md backdrop-blur-md transition hover:border-slate-300 active:scale-95"
+            title="Tự động vẽ và tạo hiệu ứng đường đi ra các tiện ích trọng điểm gần nhất"
+          >
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
+            </span>
+            <span>Khảo sát tiện ích tiêu biểu</span>
+          </button>
+
+          {activeRoutes.length > 0 && (
             <button
               type="button"
-              onClick={() => setMapViewMode('urban_sim')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                mapViewMode === 'urban_sim'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-              title="Mô phỏng đô thị 3D với dòng người & xe cộ di chuyển liên tục, nổi bật đối thủ & trường học"
+              onClick={() => handleClearRoutes()}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/95 hover:bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 shadow-md backdrop-blur-md transition"
+              title="Xoá tất cả lộ trình"
             >
-              <Building2 className="w-3.5 h-3.5" />
-              <span>Đô thị 3D (Xe & Người)</span>
+              <Trash2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Xoá đường đi</span>
             </button>
-            <button
-              type="button"
-              onClick={() => setMapViewMode('maplibre')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                mapViewMode === 'maplibre'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white'
-              }`}
-              title="Bản đồ quy hoạch 3D MapLibre và định tuyến thực tế OSRM"
-            >
-              <MapPin className="w-3.5 h-3.5" />
-              <span>Bản đồ MapLibre</span>
-            </button>
-          </div>
-
-          {mapViewMode === 'maplibre' && (
-            <>
-              <button
-                type="button"
-                onClick={() => handleRouteKeyPOIs()}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/95 hover:bg-white border border-slate-200 text-xs sm:text-sm font-bold text-slate-900 shadow-md backdrop-blur-md transition hover:border-slate-300 active:scale-95"
-                title="Tự động vẽ và tạo hiệu ứng đường đi ra các tiện ích trọng điểm gần nhất"
-              >
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
-                </span>
-                <span>Khảo sát tiện ích tiêu biểu</span>
-              </button>
-
-              {activeRoutes.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => handleClearRoutes()}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/95 hover:bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 shadow-md backdrop-blur-md transition"
-                  title="Xoá tất cả lộ trình"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Xoá đường đi</span>
-                </button>
-              )}
-            </>
           )}
         </div>
 
@@ -266,18 +230,11 @@ export function LocationIntelView() {
           </button>
         )}
 
-        {mapViewMode === 'urban_sim' ? (
-          <UrbanSimulation3D
-            property={selectedProperty}
-            onToggleAnalysis={() => setPanelCollapsed((c) => !c)}
-          />
-        ) : (
-          <InteractiveMap
-            mode="location"
-            flyToRouteId={flyTargetRouteId}
-            onClearFlyToRoute={() => setFlyTargetRouteId(null)}
-          />
-        )}
+        <InteractiveMap
+          mode="location"
+          flyToRouteId={flyTargetRouteId}
+          onClearFlyToRoute={() => setFlyTargetRouteId(null)}
+        />
       </main>
 
       {/* Right Collapsible Panel: Location Intelligence & POIs */}
@@ -820,7 +777,6 @@ export function LocationIntelView() {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setMapViewMode('maplibre');
                                 setFlyTargetRouteId(route.poiId);
                               }}
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold transition shadow-2xs cursor-pointer"

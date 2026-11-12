@@ -612,7 +612,7 @@ export const BusinessSetupView: React.FC = () => {
 
         {/* 3D / 2D Canvas Area */}
         <div className="relative flex flex-1 w-full h-full overflow-hidden">
-          {(view2D3DMode === '3d' || view2D3DMode === 'urban' || view2D3DMode === 'split') && (
+          {(view2D3DMode === '3d' || view2D3DMode === 'split') && (
             <div
               className={`relative h-full ${
                 view2D3DMode === 'split'
