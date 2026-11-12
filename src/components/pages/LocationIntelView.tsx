@@ -103,12 +103,13 @@ export function LocationIntelView() {
     setSelectedBusinessType,
     togglePOICategory,
     toggleSelectPOI,
+    routeKeyNearbyPOIs,
     clearRoutes,
     setTransportMode,
     setActiveTab,
   } = useSpaceVisionStore();
 
-  const [panelTab, setPanelTab] = useState<'bi' | 'pois'>('bi');
+  const [panelTab, setPanelTab] = useState<'bi' | 'pois'>('pois');
   const [panelCollapsed, setPanelCollapsed] = useState(false);
   const [mobileView, setMobileView] = useState<'map' | 'panel'>('map');
 
@@ -116,6 +117,16 @@ export function LocationIntelView() {
     () => properties.find((p) => p.id === selectedPropertyId) || properties[0],
     [properties, selectedPropertyId]
   );
+
+  // Auto-route to representative nearby amenities when entering Location Intel view
+  React.useEffect(() => {
+    if (activeRoutes.length === 0) {
+      const timer = setTimeout(() => {
+        routeKeyNearbyPOIs();
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedPropertyId, activeRoutes.length, routeKeyNearbyPOIs]);
 
   const biReport = useMemo(() => {
     if (!selectedProperty) return null;
@@ -154,11 +165,39 @@ export function LocationIntelView() {
     <div className="relative flex w-full h-[calc(100vh-3.5rem)] bg-slate-100 text-slate-900 overflow-hidden">
       {/* Center/Left: Large Interactive 3D Map */}
       <main className={`relative flex-1 h-full ${mobileView === 'panel' ? 'hidden md:block' : 'block'}`}>
+        {/* Floating Quick Action: Animate Routes to Key Representative Nearby Amenities */}
+        <div className="absolute top-3 left-3 z-30 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => routeKeyNearbyPOIs()}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/95 hover:bg-white border border-slate-200 text-xs sm:text-sm font-bold text-slate-900 shadow-md backdrop-blur-md transition hover:border-slate-300 active:scale-95"
+            title="Tự động vẽ và tạo hiệu ứng đường đi ra các tiện ích trọng điểm gần nhất"
+          >
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
+            </span>
+            <span>Khảo sát tiện ích tiêu biểu</span>
+          </button>
+
+          {activeRoutes.length > 0 && (
+            <button
+              type="button"
+              onClick={() => clearRoutes()}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/95 hover:bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 shadow-md backdrop-blur-md transition"
+              title="Xoá tất cả lộ trình"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Xoá đường đi</span>
+            </button>
+          )}
+        </div>
+
         {panelCollapsed && (
           <button
             type="button"
             onClick={() => setPanelCollapsed(false)}
-            className="hidden md:flex absolute top-16 right-3 z-30 items-center gap-1.5 px-3 py-2 rounded-xl bg-white/95 hover:bg-white border border-slate-200 text-xs font-semibold text-slate-800 shadow-md backdrop-blur-md transition-all"
+            className="hidden md:flex absolute top-3 right-3 z-30 items-center gap-1.5 px-3 py-2 rounded-xl bg-white/95 hover:bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-800 shadow-md backdrop-blur-md transition-all"
           >
             <PanelRightOpen className="w-4 h-4 text-blue-600" />
             <span>Mở bảng phân tích vị trí</span>
@@ -175,22 +214,22 @@ export function LocationIntelView() {
         } ${
           panelCollapsed
             ? 'md:w-0 md:translate-x-full md:overflow-hidden md:border-l-0'
-            : 'w-full md:w-[450px] lg:w-[420px] xl:w-[450px] max-w-[540px] shrink-0'
+            : 'w-full md:w-[460px] lg:w-[440px] xl:w-[480px] max-w-[560px] shrink-0'
         }`}
       >
         {/* Panel Header */}
-        <div className="p-4 border-b border-slate-200 bg-white space-y-3">
+        <div className="p-4 sm:p-5 border-b border-slate-200 bg-white space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-blue-50 border border-blue-100 text-blue-600">
-                <Navigation className="w-4 h-4" />
+            <div className="flex items-center gap-2.5">
+              <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-600">
+                <Navigation className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-sm font-bold text-slate-900">
+                <h1 className="text-base font-bold text-slate-900">
                   Phân Tích Vị Trí & Tiện Ích
                 </h1>
-                <p className="text-xs text-slate-500">
-                  Bán kính 500m & định tuyến đa phương tiện
+                <p className="text-xs sm:text-sm text-slate-500">
+                  Bán kính 500m & định tuyến đa phương tiện OSRM
                 </p>
               </div>
             </div>
@@ -207,13 +246,13 @@ export function LocationIntelView() {
 
           {/* Property Selector */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
               Mặt bằng đang khảo sát:
             </label>
             <select
               value={selectedProperty.id}
               onChange={(e) => selectProperty(e.target.value)}
-              className="w-full rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
             >
               {properties.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -225,13 +264,13 @@ export function LocationIntelView() {
 
           {/* Business Type Selector */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
               Mô hình kinh doanh đánh giá:
             </label>
             <select
               value={selectedBusinessType}
               onChange={(e) => setSelectedBusinessType(e.target.value as BusinessType)}
-              className="w-full rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-blue-700 focus:bg-white focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm font-semibold text-blue-700 focus:bg-white focus:border-blue-500 focus:outline-none"
             >
               {BUSINESS_TYPES.map((bt) => (
                 <option key={bt} value={bt}>
@@ -243,21 +282,21 @@ export function LocationIntelView() {
 
           {/* Compact Landlord Contact Block */}
           {selectedProperty.contact && (
-            <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/80 space-y-1.5">
+            <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200/80 space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold text-blue-800 uppercase tracking-wide">
+                  <span className="text-xs font-bold text-blue-800 uppercase tracking-wide">
                     {selectedProperty.contact.role || 'Chủ nhà'}
                   </span>
                   {selectedProperty.contact.responseSpeed && (
-                    <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                       {selectedProperty.contact.responseSpeed}
                     </span>
                   )}
                 </div>
                 {selectedProperty.contact.viewingAvailability && (
                   <span
-                    className="text-[10px] text-slate-500 truncate max-w-[170px]"
+                    className="text-xs text-slate-500 truncate max-w-[180px]"
                     title={selectedProperty.contact.viewingAvailability}
                   >
                     {selectedProperty.contact.viewingAvailability}
@@ -267,10 +306,10 @@ export function LocationIntelView() {
 
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-slate-900 leading-tight truncate">
+                  <div className="text-sm font-bold text-slate-900 leading-tight truncate">
                     {selectedProperty.contact.name}
                   </div>
-                  <div className="text-[11px] font-mono text-slate-600">
+                  <div className="text-xs font-mono text-slate-600">
                     {selectedProperty.contact.phone}
                   </div>
                 </div>
@@ -278,20 +317,20 @@ export function LocationIntelView() {
                 <div className="flex items-center gap-1.5 shrink-0">
                   <a
                     href={`tel:${selectedProperty.contact.phone.replace(/\s+/g, '')}`}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-xs"
                     title={`Gọi ngay cho ${selectedProperty.contact.name}`}
                   >
-                    <Phone className="w-3 h-3" />
+                    <Phone className="w-3.5 h-3.5" />
                     <span>Gọi ngay</span>
                   </a>
                   <a
                     href={`https://zalo.me/${(selectedProperty.contact.zaloPhone || selectedProperty.contact.phone).replace(/\s+/g, '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-xs"
                     title={`Chat Zalo với ${selectedProperty.contact.name}`}
                   >
-                    <MessageCircle className="w-3 h-3" />
+                    <MessageCircle className="w-3.5 h-3.5" />
                     <span>Zalo</span>
                   </a>
                 </div>
@@ -300,11 +339,11 @@ export function LocationIntelView() {
           )}
 
           {/* Focused Tab Switcher */}
-          <div className="flex p-1 rounded-lg bg-slate-100 text-xs">
+          <div className="flex p-1 rounded-xl bg-slate-100 text-sm">
             <button
               type="button"
               onClick={() => setPanelTab('bi')}
-              className={`flex-1 py-1.5 text-center font-semibold rounded-md transition-all ${
+              className={`flex-1 py-2 text-center font-bold rounded-lg transition-all ${
                 panelTab === 'bi'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -315,7 +354,7 @@ export function LocationIntelView() {
             <button
               type="button"
               onClick={() => setPanelTab('pois')}
-              className={`flex-1 py-1.5 text-center font-semibold rounded-md transition-all flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 text-center font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
                 panelTab === 'pois'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -323,7 +362,7 @@ export function LocationIntelView() {
             >
               <span>Tiện Ích & Tuyến Đường</span>
               {activeRoutes.length > 0 && (
-                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
               )}
             </button>
           </div>
@@ -629,18 +668,18 @@ export function LocationIntelView() {
             </div>
 
             {/* POI List & Route Actions */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-800">
-                  Danh sách địa điểm lân cận
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-bold text-slate-900">
+                  Địa điểm tiện ích lân cận ({filteredPOIs.length})
                 </span>
                 {activeRoutes.length > 0 && (
                   <button
                     type="button"
                     onClick={clearRoutes}
-                    className="inline-flex items-center gap-1 text-[11px] text-rose-600 hover:text-rose-700 font-semibold"
+                    className="inline-flex items-center gap-1 text-xs text-rose-600 hover:text-rose-700 font-bold"
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 className="w-3.5 h-3.5" />
                     <span>Xoá {activeRoutes.length} tuyến</span>
                   </button>
                 )}
@@ -655,33 +694,33 @@ export function LocationIntelView() {
                   <div
                     key={poi.id}
                     onClick={() => void toggleSelectPOI(poi.id)}
-                    className={`p-3 rounded-xl border transition-all cursor-pointer bg-white ${
+                    className={`p-3.5 rounded-xl border transition-all cursor-pointer bg-white ${
                       isSelected
-                        ? 'border-blue-600 ring-2 ring-blue-100 shadow-xs'
+                        ? 'border-blue-600 ring-2 ring-blue-100 shadow-md'
                         : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-1.5">
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
                           <span
-                            className="w-2 h-2 rounded-full shrink-0"
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
                             style={{ backgroundColor: meta.bgHex }}
                           />
-                          <span className="text-xs font-bold text-slate-900">{poi.name}</span>
+                          <span className="text-sm font-bold text-slate-900">{poi.name}</span>
                         </div>
                         <p className="text-xs text-slate-500 flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                           {poi.address}
                         </p>
-                        <p className="text-xs text-slate-600">{poi.description}</p>
+                        <p className="text-xs text-slate-600 leading-relaxed">{poi.description}</p>
                       </div>
 
                       <span
-                        className={`shrink-0 px-2 py-1 rounded-lg text-[11px] font-semibold border ${
+                        className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${
                           isSelected
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : 'bg-slate-50 text-slate-700 border-slate-200'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                         }`}
                       >
                         {isSelected ? 'Đang nối' : '+ Nối tuyến'}
@@ -690,16 +729,20 @@ export function LocationIntelView() {
 
                     {/* Route Details if connected */}
                     {route && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-100 space-y-1">
-                        <div className="flex items-center justify-between gap-2 text-xs">
-                          <div className="font-bold text-blue-700">
-                            {route.distanceMeters >= 1000
-                              ? `${(route.distanceMeters / 1000).toFixed(2)} km`
-                              : `${Math.round(route.distanceMeters)} m`}{' '}
-                            • ~{Math.max(1, Math.round(route.durationSeconds / 60))} phút
+                      <div className="mt-3 pt-2.5 border-t border-slate-100 space-y-1.5">
+                        <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
+                          <div className="font-bold text-blue-700 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                            <span>
+                              {route.distanceMeters >= 1000
+                                ? `${(route.distanceMeters / 1000).toFixed(2)} km`
+                                : `${Math.round(route.distanceMeters)} m`}
+                            </span>
+                            <span className="text-slate-400">•</span>
+                            <span>~{Math.max(1, Math.round(route.durationSeconds / 60))} phút</span>
                           </div>
                           <span
-                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold border ${
                               route.isRealRouting
                                 ? 'bg-blue-50 text-blue-700 border-blue-200'
                                 : 'bg-amber-50 text-amber-700 border-amber-200'
@@ -707,18 +750,14 @@ export function LocationIntelView() {
                           >
                             {route.isRealRouting ? (
                               <>
-                                <CheckCircle2 className="w-3 h-3 text-blue-600" />
-                                OSRM Thực tế
+                                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                                <span>OSRM Thực tế</span>
                               </>
                             ) : (
-                              <>
-                                <AlertTriangle className="w-3 h-3 text-amber-600" />
-                                Ước tính đô thị
-                              </>
+                              <span>Ước lượng đô thị</span>
                             )}
                           </span>
                         </div>
-                        <div className="text-[10px] text-slate-500">{route.routingNote}</div>
                       </div>
                     )}
                   </div>

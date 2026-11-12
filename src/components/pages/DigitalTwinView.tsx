@@ -315,9 +315,9 @@ export function DigitalTwinView() {
           <div className="pointer-events-auto flex items-center gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-md backdrop-blur-md">
             <button
               onClick={() => setSelectedFloor('all')}
-              className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-all ${
+              className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold transition-all ${
                 selectedFloor === 'all'
-                  ? 'bg-slate-900 text-white font-semibold shadow-sm'
+                  ? 'bg-slate-900 text-white shadow-sm'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
@@ -330,14 +330,14 @@ export function DigitalTwinView() {
                 <button
                   key={floor.level}
                   onClick={() => setSelectedFloor(floor.level)}
-                  className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all ${
+                  className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold transition-all ${
                     isSelected
-                      ? 'bg-slate-900 text-white font-semibold shadow-sm'
+                      ? 'bg-slate-900 text-white shadow-sm'
                       : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                   }`}
                 >
                   <span>Tầng {floor.level}</span>
-                  <span className="text-[10px] text-slate-400">({floor.totalArea}m²)</span>
+                  <span className="text-xs text-slate-400">({floor.totalArea}m²)</span>
                 </button>
               );
             })}
@@ -345,23 +345,23 @@ export function DigitalTwinView() {
 
           {/* Prominent Action: "Liên hệ chủ nhà xem thực tế" */}
           {property.contact && (
-            <div className="pointer-events-auto flex items-center gap-2.5 rounded-2xl border border-slate-200/90 bg-white/95 px-3.5 py-1.5 shadow-md backdrop-blur-md">
+            <div className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-slate-200/90 bg-white/95 px-4 py-2 shadow-md backdrop-blur-md">
               <div className="hidden sm:block text-right">
-                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">
                   Liên hệ xem thực tế ({property.contact.role})
                 </div>
-                <div className="text-xs font-bold text-slate-900">
+                <div className="text-sm font-bold text-slate-900">
                   {property.contact.name} •{' '}
-                  <span className="font-mono text-blue-600">{property.contact.phone}</span>
+                  <span className="font-mono text-blue-600 font-bold">{property.contact.phone}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <a
                   href={`tel:${property.contact.phone.replace(/\s+/g, '')}`}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm transition-colors shadow-xs"
                   title={`Gọi điện cho ${property.contact.name}`}
                 >
-                  <Phone className="w-3.5 h-3.5" />
+                  <Phone className="w-4 h-4" />
                   <span className="hidden sm:inline">Gọi chủ nhà</span>
                   <span className="sm:hidden">Gọi</span>
                 </a>
@@ -369,10 +369,10 @@ export function DigitalTwinView() {
                   href={`https://zalo.me/${(property.contact.zaloPhone || property.contact.phone).replace(/\s+/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm transition-colors shadow-xs"
                   title={`Nhắn tin Zalo với ${property.contact.name}`}
                 >
-                  <MessageCircle className="w-3.5 h-3.5" />
+                  <MessageCircle className="w-4 h-4" />
                   <span>Zalo</span>
                 </a>
               </div>

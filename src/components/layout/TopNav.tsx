@@ -153,14 +153,14 @@ export const TopNav: React.FC = () => {
               </div>
               <div className="hidden sm:block">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-bold tracking-tight text-slate-900">
+                  <span className="text-base font-extrabold tracking-tight text-slate-900">
                     SpaceVision
                   </span>
-                  <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-slate-700 border border-slate-200">
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-700 border border-slate-200">
                     BĐS 3D
                   </span>
                 </div>
-                <p className="text-[10px] font-medium tracking-wide text-slate-500">
+                <p className="text-[11px] font-semibold tracking-wide text-slate-500">
                   Commercial Real Estate
                 </p>
               </div>
@@ -178,15 +178,15 @@ export const TopNav: React.FC = () => {
                     className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-left transition hover:border-slate-300 hover:bg-slate-100/90"
                     title="Chuyển đổi nhanh mặt bằng đang khảo sát"
                   >
-                    <Building2 className="h-3.5 w-3.5 shrink-0 text-slate-600" />
-                    <span className="font-mono text-xs font-bold text-slate-900">
+                    <Building2 className="h-4 w-4 shrink-0 text-slate-600" />
+                    <span className="font-mono text-sm font-bold text-slate-900">
                       {selectedProperty.code}
                     </span>
-                    <span className="text-[11px] text-slate-500 hidden xl:inline">
+                    <span className="text-xs text-slate-600 hidden xl:inline">
                       • {selectedProperty.district}
                     </span>
                     <ChevronDown
-                      className={`h-3 w-3 text-slate-500 transition-transform ${
+                      className={`h-3.5 w-3.5 text-slate-500 transition-transform ${
                         propertyDropdownOpen ? 'rotate-180' : ''
                       }`}
                     />
@@ -271,14 +271,14 @@ export const TopNav: React.FC = () => {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   title={`${tab.label} (${tab.shortcut}) — ${tab.description}`}
-                  className={`group relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs transition-colors whitespace-nowrap ${
+                  className={`group relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors whitespace-nowrap ${
                     isActive
-                      ? 'bg-slate-900 text-white font-semibold shadow-xs'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'
+                      ? 'bg-slate-900 text-white font-bold shadow-xs'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-semibold'
                   }`}
                 >
                   <Icon
-                    className={`h-3.5 w-3.5 shrink-0 transition-colors ${
+                    className={`h-4 w-4 shrink-0 transition-colors ${
                       isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-800'
                     }`}
                   />
@@ -286,7 +286,7 @@ export const TopNav: React.FC = () => {
 
                   {isComparison && comparedPropertyIds.length > 0 && (
                     <span
-                      className={`ml-1 flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 font-mono text-[10px] font-bold ${
+                      className={`ml-1 flex h-4 min-w-[18px] items-center justify-center rounded-full px-1 font-mono text-xs font-bold ${
                         isActive
                           ? 'bg-white text-slate-900'
                           : 'bg-slate-200 text-slate-800'
@@ -305,7 +305,7 @@ export const TopNav: React.FC = () => {
             {/* Interactive Onboarding Guide & Help Trigger */}
             <button
               onClick={() => openOnboardingGuide()}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-900 shadow-xs"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-sm font-bold text-slate-800 transition hover:bg-slate-50 hover:text-slate-900 shadow-xs"
               title="Xem hướng dẫn sử dụng từng bước (Dành cho người mới)"
             >
               <HelpCircle className="h-4 w-4 text-slate-600" />

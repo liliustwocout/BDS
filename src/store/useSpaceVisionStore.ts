@@ -19,7 +19,7 @@ import {
   parseNaturalLanguageQuery,
   scorePropertyForIntent,
 } from '@/lib/aiEngine';
-import { fetchRouteToPOI } from '@/lib/geoUtils';
+import { fetchRouteToPOI, calculateHaversineMeters } from '@/lib/geoUtils';
 
 const ALL_POI_CATEGORIES: POICategory[] = [
   'university',
@@ -105,6 +105,7 @@ export interface SpaceVisionState {
   setSelectedDesignStyle: (style: DesignStyle) => void;
   togglePOICategory: (cat: POICategory) => void;
   toggleSelectPOI: (poiId: string) => Promise<void>;
+  routeKeyNearbyPOIs: () => Promise<void>;
   clearRoutes: () => void;
   setTransportMode: (mode: TransportMode) => void;
   setSelectedFloor: (floor: number | 'all') => void;
@@ -461,6 +462,63 @@ export const useSpaceVisionStore = create<SpaceVisionState>((set, get) => ({
         ],
         isRoutingLoading: false,
       }));
+    } catch {
+      set({ isRoutingLoading: false });
+    }
+  },
+
+  routeKeyNearbyPOIs: async () => {
+    const state = get();
+    const currentProp =
+      state.properties.find((p) => p.id === state.selectedPropertyId) ||
+      state.properties[0];
+    if (!currentProp || !currentProp.nearbyPOIs || currentProp.nearbyPOIs.length === 0) return;
+
+    // Sort POIs by distance from property
+    const sorted = [...currentProp.nearbyPOIs].sort(
+      (a, b) =>
+        calculateHaversineMeters(currentProp.coordinates, a.coordinates) -
+        calculateHaversineMeters(currentProp.coordinates, b.coordinates)
+    );
+
+    // Pick top 3 diverse representative POIs: 1 customer, 1 service/competitor, 1 transport
+    const customerPoi = sorted.find((p) =>
+      ['university', 'office', 'apartment'].includes(p.category)
+    );
+    const servicePoi = sorted.find((p) =>
+      ['cafe_restaurant', 'mall', 'competitor'].includes(p.category)
+    );
+    const transportPoi = sorted.find((p) =>
+      ['parking', 'bus_stop', 'hospital'].includes(p.category)
+    );
+
+    const chosenPOIs = [customerPoi, servicePoi, transportPoi].filter(Boolean) as typeof sorted;
+    if (chosenPOIs.length === 0) return;
+
+    const chosenIds = chosenPOIs.map((p) => p.id);
+    set({
+      selectedPOIIds: chosenIds,
+      isRoutingLoading: true,
+    });
+
+    try {
+      const mode = get().transportMode;
+      const routes = await Promise.all(
+        chosenPOIs.map((poi) =>
+          fetchRouteToPOI(
+            currentProp.coordinates,
+            poi.coordinates,
+            poi.id,
+            poi.name,
+            mode
+          )
+        )
+      );
+
+      set({
+        activeRoutes: routes,
+        isRoutingLoading: false,
+      });
     } catch {
       set({ isRoutingLoading: false });
     }

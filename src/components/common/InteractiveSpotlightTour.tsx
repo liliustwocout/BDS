@@ -354,48 +354,48 @@ export function InteractiveSpotlightTour() {
         {/* Top Header of Card */}
         <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5 mb-3">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white shadow-xs">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white shadow-xs">
               <StepIcon className="h-4 w-4" />
             </div>
-            <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-[11px] font-bold text-slate-700 border border-slate-200">
+            <span className="rounded bg-slate-100 px-2.5 py-1 font-mono text-xs font-bold text-slate-700 border border-slate-200">
               {currentStep.badge}
             </span>
           </div>
 
           <button
             onClick={handleSkip}
-            className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition"
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs sm:text-sm font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition"
             title="Bỏ qua hướng dẫn (Để sau)"
           >
             <span>Bỏ qua (Để sau)</span>
-            <X className="h-3.5 w-3.5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="space-y-1.5 mb-4">
-          <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug">
+        <div className="space-y-2 mb-4">
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">
             {currentStep.title}
           </h3>
-          <p className="text-xs text-slate-600 leading-relaxed">
+          <p className="text-sm text-slate-600 leading-relaxed">
             {currentStep.description}
           </p>
         </div>
 
         {/* Bottom Actions & Stepper Dots */}
-        <div className="flex items-center justify-between pt-2 border-t border-slate-100 gap-2">
+        <div className="flex items-center justify-between pt-3 border-t border-slate-100 gap-2">
           {/* Progress Dots */}
           <div className="flex items-center gap-1.5">
             {TOUR_STEPS.map((step, idx) => (
               <button
                 key={step.id}
                 onClick={() => setCurrentStepIndex(idx)}
-                className={`h-2 rounded-full transition-all ${
+                className={`h-2.5 rounded-full transition-all ${
                   idx === currentStepIndex
-                    ? 'w-5 bg-slate-900'
+                    ? 'w-6 bg-slate-900'
                     : idx < currentStepIndex
-                    ? 'w-2 bg-slate-400'
-                    : 'w-2 bg-slate-200'
+                    ? 'w-2.5 bg-slate-400'
+                    : 'w-2.5 bg-slate-200'
                 }`}
                 title={`Bước ${idx + 1}: ${step.title}`}
               />
@@ -403,30 +403,30 @@ export function InteractiveSpotlightTour() {
           </div>
 
           {/* Prev / Next Buttons */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             {!isFirstStep && (
               <button
                 onClick={handlePrev}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-100 transition"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-100 transition"
               >
-                <ChevronLeft className="h-3.5 w-3.5" />
+                <ChevronLeft className="h-4 w-4" />
                 <span>Quay lại</span>
               </button>
             )}
 
             <button
               onClick={handleNext}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-slate-900 text-xs font-bold text-white hover:bg-slate-800 transition shadow-xs"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-xs sm:text-sm font-bold text-white hover:bg-slate-800 transition shadow-xs"
             >
               {isLastStep ? (
                 <>
                   <span>Bắt đầu khám phá</span>
-                  <Check className="h-3.5 w-3.5" />
+                  <Check className="h-4 w-4" />
                 </>
               ) : (
                 <>
                   <span>Tiếp theo</span>
-                  <ChevronRight className="h-3.5 w-3.5" />
+                  <ChevronRight className="h-4 w-4" />
                 </>
               )}
             </button>

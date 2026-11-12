@@ -36,36 +36,43 @@ export interface InteractiveMapProps {
   className?: string;
 }
 
-type BasemapTheme = 'osm' | 'streets' | 'light';
+type BasemapTheme = 'streets' | 'hybrid' | 'osm';
 
 const BASEMAP_TILES: Record<
   BasemapTheme,
   { label: string; urls: string[]; attribution: string; maxzoom: number }
 > = {
+  streets: {
+    label: 'Đường phố',
+    urls: [
+      'https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+      'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+      'https://mt2.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+      'https://mt3.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+    ],
+    attribution: '&copy; Google Maps',
+    maxzoom: 20,
+  },
+  hybrid: {
+    label: 'Vệ tinh',
+    urls: [
+      'https://mt0.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+      'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+      'https://mt2.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+      'https://mt3.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    ],
+    attribution: '&copy; Google Maps',
+    maxzoom: 20,
+  },
   osm: {
     label: 'OpenStreetMap',
     urls: [
-      'https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-      'https://b.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+      'https://a.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
+      'https://b.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
+      'https://c.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
     ],
-    attribution: '&copy; OpenStreetMap contributors, HOT',
-    maxzoom: 18,
-  },
-  streets: {
-    label: 'Đường phố Esri',
-    urls: [
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-    ],
-    attribution: 'Esri, DeLorme, &copy; OpenStreetMap contributors',
-    maxzoom: 18,
-  },
-  light: {
-    label: 'Kiến trúc (Light)',
-    urls: [
-      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-    ],
-    attribution: 'Esri, &copy; OpenStreetMap contributors',
-    maxzoom: 15, // Giới hạn z=15 để MapLibre tự động overzoom, tuyệt đối không gửi request z>=16 gây lỗi watermark 'Map data not yet available'
+    attribution: '&copy; OpenStreetMap contributors',
+    maxzoom: 19,
   },
 };
 
@@ -218,8 +225,10 @@ export function InteractiveMap({ mode, filteredProperties, className = '' }: Int
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const routeLabelMarkersRef = useRef<maplibregl.Marker[]>([]);
   const activePopupRef = useRef<maplibregl.Popup | null>(null);
+  const routeAnimRef = useRef<number | null>(null);
+  const dashOffsetRef = useRef<number>(0);
 
-  const [basemapTheme, setBasemapTheme] = useState<BasemapTheme>('osm');
+  const [basemapTheme, setBasemapTheme] = useState<BasemapTheme>('streets');
   const [mapReady, setMapReady] = useState(false);
   const [showPreviewCard, setShowPreviewCard] = useState(true);
   const [showCatchmentCircle, setShowCatchmentCircle] = useState(true);
@@ -287,7 +296,7 @@ export function InteractiveMap({ mode, filteredProperties, className = '' }: Int
       style: buildRasterStyle(basemapTheme),
       center: initialCenter,
       zoom: mode === 'location' ? 16 : 13.8,
-      maxZoom: 18.5,
+      maxZoom: 20,
       pitch: initialPitch,
       bearing: initialBearing,
       attributionControl: false,
@@ -578,6 +587,23 @@ export function InteractiveMap({ mode, filteredProperties, className = '' }: Int
           'line-opacity': 0.95,
         },
       });
+
+      // Animated route flow line (Cyan pulsed stream flowing outward from commercial building)
+      map.addLayer({
+        id: 'active-routes-flow',
+        type: 'line',
+        source: 'active-routes',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': '#38bdf8',
+          'line-width': 3.5,
+          'line-dasharray': [0, 4, 3],
+          'line-opacity': 0.95,
+        },
+      });
     }
 
     // 3. Route midpoint HTML badges showing Distance + Travel Time + Honest Status
@@ -591,7 +617,7 @@ export function InteractiveMap({ mode, filteredProperties, className = '' }: Int
         const midLngLat = toLngLat(route.geometry[midIdx]);
 
         const el = document.createElement('div');
-        el.className = 'pointer-events-auto select-none z-20';
+        el.className = 'pointer-events-auto select-none z-20 animate-fade-in';
         const distLabel =
           route.distanceMeters >= 1000
             ? `${(route.distanceMeters / 1000).toFixed(2)} km`
@@ -600,22 +626,23 @@ export function InteractiveMap({ mode, filteredProperties, className = '' }: Int
         const modeLabel = transportMode === 'foot' ? 'Đi bộ' : transportMode === 'bike' ? 'Xe máy' : 'Ô tô';
 
         const badgeStyle = route.isRealRouting
-          ? 'bg-white border-blue-200 text-slate-800 shadow-md ring-1 ring-blue-100'
-          : 'bg-white border-amber-200 text-slate-800 shadow-md ring-1 ring-amber-100';
+          ? 'bg-white border-blue-200 text-slate-800 shadow-lg ring-1 ring-blue-100'
+          : 'bg-white border-amber-200 text-slate-800 shadow-lg ring-1 ring-amber-100';
 
         const tagBadge = route.isRealRouting
-          ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold border border-blue-200">OSRM Thực Tế</span>'
-          : '<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-semibold border border-amber-200">Ước Tính Đô Thị</span>';
+          ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold border border-blue-200">OSRM Thực Tế</span>'
+          : '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-semibold border border-amber-200">Ước Tính Đô Thị</span>';
 
         el.innerHTML = `
-          <div class="px-2.5 py-1.5 rounded-lg border backdrop-blur-md text-[11px] leading-tight flex flex-col gap-0.5 ${badgeStyle}">
-            <div class="flex items-center gap-1.5 font-bold text-slate-900">
+          <div class="px-3 py-2 rounded-xl border backdrop-blur-md text-xs leading-tight flex flex-col gap-1 ${badgeStyle}">
+            <div class="flex items-center gap-1.5 font-bold text-slate-900 text-[13px]">
+              <span class="inline-block w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
               <span>${distLabel}</span>
               <span class="text-slate-400">•</span>
               <span>~${mins} phút (${modeLabel})</span>
             </div>
-            <div class="flex items-center justify-between gap-1.5 mt-0.5">
-              <span class="text-[10px] text-slate-600 truncate max-w-[130px] font-medium">${route.poiName}</span>
+            <div class="flex items-center justify-between gap-2 mt-0.5">
+              <span class="text-xs text-slate-700 truncate max-w-[150px] font-medium">${route.poiName}</span>
               ${tagBadge}
             </div>
           </div>
@@ -636,6 +663,53 @@ export function InteractiveMap({ mode, filteredProperties, className = '' }: Int
     showCatchmentCircle,
     basemapTheme,
   ]);
+
+  // Animated flowing dash effect on active routes (pulsing outbound stream)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || activeRoutes.length === 0 || mode !== 'location') {
+      if (routeAnimRef.current) {
+        cancelAnimationFrame(routeAnimRef.current);
+        routeAnimRef.current = null;
+      }
+      return;
+    }
+
+    let isSubscribed = true;
+    const animateDash = () => {
+      if (!isSubscribed) return;
+      dashOffsetRef.current = (dashOffsetRef.current + 0.18) % 12;
+      const step = dashOffsetRef.current;
+      if (map && map.getLayer('active-routes-flow')) {
+        map.setPaintProperty('active-routes-flow', 'line-dasharray', [
+          step,
+          4,
+          Math.max(0.5, 8 - step),
+        ]);
+      }
+      routeAnimRef.current = requestAnimationFrame(animateDash);
+    };
+
+    routeAnimRef.current = requestAnimationFrame(animateDash);
+
+    // Smoothly fit map view to show property and its connected amenities
+    if (selectedProperty && activeRoutes.length > 0) {
+      const bounds = new maplibregl.LngLatBounds();
+      bounds.extend(toLngLat(selectedProperty.coordinates));
+      activeRoutes.forEach((route) => {
+        route.geometry.forEach((pt) => bounds.extend(toLngLat(pt)));
+      });
+      map.fitBounds(bounds, { padding: 80, maxZoom: 16.8, duration: 800 });
+    }
+
+    return () => {
+      isSubscribed = false;
+      if (routeAnimRef.current) {
+        cancelAnimationFrame(routeAnimRef.current);
+        routeAnimRef.current = null;
+      }
+    };
+  }, [mapReady, activeRoutes, mode, selectedProperty]);
 
   // Render Clean Property & POI Markers
   useEffect(() => {
@@ -909,7 +983,7 @@ export function InteractiveMap({ mode, filteredProperties, className = '' }: Int
         {/* Basemap Switcher */}
         <div className="flex items-center bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg p-1 shadow-sm">
           <Layers className="w-3.5 h-3.5 text-slate-500 ml-1.5 mr-1" />
-          {(['osm', 'streets', 'light'] as BasemapTheme[]).map((theme) => (
+          {(['streets', 'hybrid', 'osm'] as BasemapTheme[]).map((theme) => (
             <button
               key={theme}
               type="button"

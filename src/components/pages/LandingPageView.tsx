@@ -258,7 +258,7 @@ export const LandingPageView: React.FC = () => {
 
           {/* Main Headline */}
           <div className="text-center">
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl md:text-5xl lg:text-[2.75rem] leading-[1.15]">
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl md:text-5xl lg:text-5xl leading-[1.15]">
               Không gian thương mại & Mặt bằng kinh doanh đắc địa
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-base text-slate-600 sm:text-lg">
@@ -268,9 +268,9 @@ export const LandingPageView: React.FC = () => {
           </div>
 
           {/* Central Real Estate Search Box */}
-          <div className="mt-8 rounded-2xl border border-slate-200/90 bg-white p-3 sm:p-4 shadow-xl shadow-slate-200/60">
+          <div className="mt-8 rounded-2xl border border-slate-200/90 bg-white p-3.5 sm:p-5 shadow-xl shadow-slate-200/60">
             {/* Natural language idea input */}
-            <div id="tour-search-input" className="relative mb-3">
+            <div id="tour-search-input" className="relative mb-3.5">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
                 <Search className="h-5 w-5 text-slate-400" />
               </div>
@@ -282,21 +282,21 @@ export const LandingPageView: React.FC = () => {
                   if (e.key === 'Enter') handleExecuteSearch();
                 }}
                 placeholder="Nhập ý tưởng kinh doanh (VD: Mở quán cà phê 120m2 tại Cầu Giấy, ngân sách 30 triệu/tháng)..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-3 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/20"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/80 py-3.5 pl-11 pr-4 text-base sm:text-lg text-slate-900 placeholder-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-400/20"
               />
             </div>
 
             {/* Quick selectors row & Action CTA */}
-            <div id="tour-search-cta" className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-4">
+            <div id="tour-search-cta" className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
               {/* Business Type selector */}
               <div>
-                <label className="mb-1 block text-[11px] font-semibold text-slate-600">
+                <label className="mb-1.5 block text-xs sm:text-sm font-bold text-slate-700">
                   Mô hình kinh doanh
                 </label>
                 <select
                   value={selectedBizType}
                   onChange={(e) => setSelectedBizType(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:border-slate-400 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-slate-400 focus:outline-none"
                 >
                   {BIZ_OPTIONS.map((opt) => (
                     <option key={opt.id} value={opt.id}>
@@ -308,13 +308,13 @@ export const LandingPageView: React.FC = () => {
 
               {/* District selector */}
               <div>
-                <label className="mb-1 block text-[11px] font-semibold text-slate-600">
+                <label className="mb-1.5 block text-xs sm:text-sm font-bold text-slate-700">
                   Khu vực / Quận
                 </label>
                 <select
                   value={selectedDistrict}
                   onChange={(e) => setSelectedDistrict(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:border-slate-400 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-slate-400 focus:outline-none"
                 >
                   {DISTRICT_OPTIONS.map((opt) => (
                     <option key={opt.id} value={opt.id}>
@@ -326,13 +326,13 @@ export const LandingPageView: React.FC = () => {
 
               {/* Budget selector */}
               <div>
-                <label className="mb-1 block text-[11px] font-semibold text-slate-600">
+                <label className="mb-1.5 block text-xs sm:text-sm font-bold text-slate-700">
                   Ngân sách thuê/tháng
                 </label>
                 <select
                   value={selectedPrice}
                   onChange={(e) => setSelectedPrice(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:border-slate-400 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-slate-400 focus:outline-none"
                 >
                   {PRICE_OPTIONS.map((opt) => (
                     <option key={opt.id} value={opt.id}>
@@ -346,7 +346,7 @@ export const LandingPageView: React.FC = () => {
               <div className="flex items-end">
                 <button
                   onClick={() => handleExecuteSearch()}
-                  className="flex h-[38px] w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 text-xs font-bold text-white shadow transition hover:bg-slate-800 active:scale-[0.98]"
+                  className="flex h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 text-sm font-bold text-white shadow transition hover:bg-slate-800 active:scale-[0.98]"
                 >
                   <Search className="h-4 w-4" />
                   <span>Tìm kiếm & Đề xuất AI</span>
@@ -355,15 +355,15 @@ export const LandingPageView: React.FC = () => {
             </div>
 
             {/* Quick suggested searches */}
-            <div className="mt-3 flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
-              <span className="font-medium text-slate-400">Gợi ý nhanh:</span>
+            <div className="mt-3 flex flex-wrap items-center gap-2 pt-2.5 border-t border-slate-100 text-xs sm:text-sm text-slate-500">
+              <span className="font-semibold text-slate-400">Gợi ý nhanh:</span>
               <button
                 type="button"
                 onClick={() => {
                   setSearchInput('Quán cà phê mặt tiền 5m Duy Tân Cầu Giấy');
                   handleExecuteSearch('Quán cà phê mặt tiền 5m Duy Tân Cầu Giấy');
                 }}
-                className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition"
+                className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition"
               >
                 Cà phê Duy Tân Cầu Giấy
               </button>
@@ -373,7 +373,7 @@ export const LandingPageView: React.FC = () => {
                   setSearchInput('Văn phòng công ty Đống Đa 150m2');
                   handleExecuteSearch('Văn phòng công ty Đống Đa 150m2');
                 }}
-                className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition"
+                className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition"
               >
                 Văn phòng Đống Đa
               </button>
@@ -383,7 +383,7 @@ export const LandingPageView: React.FC = () => {
                   setSearchInput('Showroom thời trang Hoàn Kiếm vỉa hè rộng');
                   handleExecuteSearch('Showroom thời trang Hoàn Kiếm vỉa hè rộng');
                 }}
-                className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition"
+                className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition"
               >
                 Showroom Hoàn Kiếm
               </button>
@@ -391,9 +391,9 @@ export const LandingPageView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => openOnboardingGuide()}
-                className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 transition underline underline-offset-2 decoration-slate-300"
+                className="ml-auto inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-blue-700 hover:text-blue-900 transition underline underline-offset-2 decoration-blue-300"
               >
-                <HelpCircle className="h-3 w-3 text-slate-500" />
+                <HelpCircle className="h-4 w-4 text-blue-600" />
                 <span>Xem hướng dẫn 1 phút</span>
               </button>
             </div>
@@ -406,10 +406,10 @@ export const LandingPageView: React.FC = () => {
         {/* Section Header & Filter Tabs */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4">
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
               Mặt bằng thương mại nổi bật tại Hà Nội
             </h2>
-            <p className="mt-1 text-xs sm:text-sm text-slate-500">
+            <p className="mt-1.5 text-sm sm:text-base text-slate-600">
               Các toà nhà thương mại có đầy đủ mô hình toà nhà 3D, Digital Twin đa tầng và thông số kỹ thuật
             </p>
           </div>
@@ -420,7 +420,7 @@ export const LandingPageView: React.FC = () => {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap transition ${
+                className={`rounded-lg px-3.5 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition ${
                   activeCategory === cat.id
                     ? 'bg-slate-900 text-white shadow-sm'
                     : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 hover:text-slate-900'
@@ -447,71 +447,71 @@ export const LandingPageView: React.FC = () => {
               />
 
               {/* Property Details Body */}
-              <div className="flex flex-1 flex-col p-4">
+              <div className="flex flex-1 flex-col p-4 sm:p-5">
                 {/* Title and Address */}
-                <div className="min-h-[48px]">
-                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition">
+                <div className="min-h-[52px]">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 group-hover:text-blue-600 transition leading-snug">
                     {prop.title}
                   </h3>
-                  <p className="mt-1 text-xs text-slate-500 line-clamp-1">
+                  <p className="mt-1 text-xs sm:text-sm text-slate-500 line-clamp-1">
                     {prop.address}
                   </p>
                 </div>
 
                 {/* Decluttered 4 Key Metrics: Giá thuê, Diện tích, Mặt tiền, Số tầng */}
-                <div className="my-3 grid grid-cols-2 gap-2 text-xs border-y border-slate-100 py-3">
+                <div className="my-3.5 grid grid-cols-2 gap-2.5 text-xs border-y border-slate-100 py-3.5">
                   {/* Metric 1: Giá thuê */}
-                  <div className="rounded-lg bg-emerald-50/70 p-2 border border-emerald-100 flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                      <DollarSign className="w-3.5 h-3.5" />
+                  <div className="rounded-lg bg-emerald-50/70 p-2.5 border border-emerald-100 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                      <DollarSign className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[10px] text-slate-500 font-medium">Giá thuê</div>
-                      <div className="font-extrabold text-emerald-800 text-sm leading-tight truncate">
+                      <div className="text-xs text-slate-500 font-semibold">Giá thuê</div>
+                      <div className="font-extrabold text-emerald-800 text-base leading-tight truncate">
                         {prop.monthlyRentMillionVND}{' '}
-                        <span className="text-[11px] font-semibold text-emerald-700">tr/th</span>
+                        <span className="text-xs font-bold text-emerald-700">tr/th</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Metric 2: Diện tích */}
-                  <div className="rounded-lg bg-slate-50 p-2 border border-slate-100 flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                      <Maximize2 className="w-3.5 h-3.5" />
+                  <div className="rounded-lg bg-slate-50 p-2.5 border border-slate-100 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                      <Maximize2 className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[10px] text-slate-500 font-medium">Diện tích</div>
-                      <div className="font-bold text-slate-900 text-sm leading-tight truncate">
+                      <div className="text-xs text-slate-500 font-semibold">Diện tích</div>
+                      <div className="font-bold text-slate-900 text-base leading-tight truncate">
                         {prop.totalAreaSqm}{' '}
-                        <span className="text-[11px] font-normal text-slate-500">m²</span>
+                        <span className="text-xs font-normal text-slate-500">m²</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Metric 3: Mặt tiền */}
-                  <div className="rounded-lg bg-slate-50 p-2 border border-slate-100 flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                      <Building2 className="w-3.5 h-3.5" />
+                  <div className="rounded-lg bg-slate-50 p-2.5 border border-slate-100 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                      <Building2 className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[10px] text-slate-500 font-medium">Mặt tiền</div>
-                      <div className="font-bold text-slate-900 text-sm leading-tight truncate">
+                      <div className="text-xs text-slate-500 font-semibold">Mặt tiền</div>
+                      <div className="font-bold text-slate-900 text-base leading-tight truncate">
                         {prop.frontageMeters}{' '}
-                        <span className="text-[11px] font-normal text-slate-500">m</span>
+                        <span className="text-xs font-normal text-slate-500">m</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Metric 4: Số tầng */}
-                  <div className="rounded-lg bg-slate-50 p-2 border border-slate-100 flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                      <Layers className="w-3.5 h-3.5" />
+                  <div className="rounded-lg bg-slate-50 p-2.5 border border-slate-100 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                      <Layers className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[10px] text-slate-500 font-medium">Số tầng</div>
-                      <div className="font-bold text-slate-900 text-sm leading-tight truncate">
+                      <div className="text-xs text-slate-500 font-semibold">Số tầng</div>
+                      <div className="font-bold text-slate-900 text-base leading-tight truncate">
                         {prop.floorsCount}{' '}
-                        <span className="text-[11px] font-normal text-slate-500">tầng</span>
+                        <span className="text-xs font-normal text-slate-500">tầng</span>
                       </div>
                     </div>
                   </div>
@@ -520,58 +520,58 @@ export const LandingPageView: React.FC = () => {
                 {/* Compact Landlord Contact Badge & Direct Action */}
                 <div
                   id={index === 0 ? 'tour-landlord-contact' : undefined}
-                  className="mb-3 flex items-center justify-between gap-1.5 p-2 rounded-lg bg-slate-50/90 border border-slate-200"
+                  className="mb-3.5 flex items-center justify-between gap-2 p-2.5 rounded-lg bg-slate-50/90 border border-slate-200"
                 >
                   <button
                     type="button"
                     onClick={() => setBookingProperty(prop)}
-                    className="flex items-center gap-1.5 min-w-0 text-left hover:text-blue-600 transition group/contact"
+                    className="flex items-center gap-2 min-w-0 text-left hover:text-blue-600 transition group/contact"
                     title="Nhấn để xem liên hệ chủ nhà & đặt lịch khảo sát"
                   >
-                    <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-[10px] shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-800 font-bold flex items-center justify-center text-xs shrink-0">
                       {prop.contact.name.slice(0, 1)}
                     </div>
-                    <div className="truncate text-xs">
-                      <span className="text-slate-500 text-[11px]">Liên hệ: </span>
-                      <strong className="text-slate-800 font-semibold group-hover/contact:text-blue-600">
+                    <div className="truncate text-xs sm:text-sm">
+                      <span className="text-slate-500">Liên hệ: </span>
+                      <strong className="text-slate-900 font-bold group-hover/contact:text-blue-600">
                         {prop.contact.name}
                       </strong>
                       <span className="text-slate-400 mx-1">•</span>
-                      <span className="font-mono text-[11px] text-slate-600">{prop.contact.phone}</span>
+                      <span className="font-mono text-xs font-bold text-slate-700">{prop.contact.phone}</span>
                     </div>
                   </button>
 
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <a
                       href={`tel:${prop.contact.phone.replace(/[^\d+]/g, '')}`}
                       title={`Gọi ${prop.contact.phone}`}
-                      className="p-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white transition shadow-xs"
+                      className="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white transition shadow-xs"
                     >
-                      <Phone className="w-3 h-3 text-emerald-400" />
+                      <Phone className="w-3.5 h-3.5 text-emerald-400" />
                     </a>
                     <a
                       href={`https://zalo.me/${(prop.contact.zaloPhone || prop.contact.phone).replace(/[^\d+]/g, '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Nhắn Zalo"
-                      className="p-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white transition shadow-xs"
+                      className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition shadow-xs"
                     >
-                      <MessageSquare className="w-3 h-3" />
+                      <MessageSquare className="w-3.5 h-3.5" />
                     </a>
                   </div>
                 </div>
 
                 {/* Handover incentive or Highlights */}
                 {prop.contact.handoverOffer ? (
-                  <div className="mb-3 rounded bg-amber-50/80 border border-amber-200/70 px-2.5 py-1 text-[11px] font-medium text-amber-900 line-clamp-1">
-                    <span className="font-semibold text-amber-950">Ưu đãi:</span> {prop.contact.handoverOffer}
+                  <div className="mb-3.5 rounded-lg bg-amber-50/80 border border-amber-200/70 px-3 py-1.5 text-xs sm:text-sm font-medium text-amber-900 line-clamp-1">
+                    <span className="font-bold text-amber-950">Ưu đãi:</span> {prop.contact.handoverOffer}
                   </div>
                 ) : (
-                  <div className="mb-3 flex flex-wrap gap-1.5">
+                  <div className="mb-3.5 flex flex-wrap gap-1.5">
                     {prop.tags.slice(0, 2).map((tag, tIdx) => (
                       <span
                         key={tIdx}
-                        className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600"
+                        className="rounded bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600"
                       >
                         {tag}
                       </span>
@@ -582,21 +582,21 @@ export const LandingPageView: React.FC = () => {
                 {/* Action Buttons: 3D Twin & 3D Map */}
                 <div
                   id={index === 0 ? 'tour-3d-actions' : undefined}
-                  className="mt-auto grid grid-cols-2 gap-2 pt-2 border-t border-slate-100"
+                  className="mt-auto grid grid-cols-2 gap-2.5 pt-2.5 border-t border-slate-100"
                 >
                   <button
                     onClick={() => handleOpen3DTwin(prop.id)}
-                    className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-2 px-2 text-xs font-semibold text-slate-800 hover:border-slate-300 hover:bg-slate-50 transition shadow-sm"
+                    className="flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white py-2.5 px-3 text-xs sm:text-sm font-bold text-slate-800 hover:border-slate-300 hover:bg-slate-50 transition shadow-sm"
                   >
-                    <Box className="h-3.5 w-3.5 text-slate-600" />
+                    <Box className="h-4 w-4 text-slate-600" />
                     <span>Không gian 3D</span>
                   </button>
 
                   <button
                     onClick={() => handleOpenLocationMap(prop.id)}
-                    className="flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 py-2 px-2 text-xs font-semibold text-white hover:bg-slate-800 transition shadow-sm"
+                    className="flex items-center justify-center gap-2 rounded-lg bg-slate-900 py-2.5 px-3 text-xs sm:text-sm font-bold text-white hover:bg-slate-800 transition shadow-sm"
                   >
-                    <MapPin className="h-3.5 w-3.5 text-slate-200" />
+                    <MapPin className="h-4 w-4 text-slate-200" />
                     <span>Bản đồ 3D</span>
                   </button>
                 </div>
@@ -610,50 +610,50 @@ export const LandingPageView: React.FC = () => {
       <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
           <div className="text-center max-w-2xl mx-auto mb-8">
-            <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
               Công nghệ Khảo sát & Đánh giá Mặt bằng Thương mại
             </h2>
-            <p className="mt-2 text-xs sm:text-sm text-slate-600">
+            <p className="mt-2 text-sm sm:text-base text-slate-600">
               Quy trình số hoá toàn diện giúp nhà đầu tư và chủ thương hiệu đưa ra quyết định chính xác
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {/* Card 1: 3D Buildings Map */}
-            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5 transition hover:border-slate-300 hover:bg-slate-50">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
-                <Building2 className="h-5 w-5" />
+            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5 sm:p-6 transition hover:border-slate-300 hover:bg-slate-50">
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                <Building2 className="h-6 w-6" />
               </div>
-              <h3 className="mt-4 text-sm font-bold text-slate-900">
+              <h3 className="mt-4 text-base sm:text-lg font-bold text-slate-900">
                 Bản đồ 3D Toà nhà & Định vị
               </h3>
-              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">
                 Mô phỏng khối toà nhà 3D đô thị với góc nghiêng trực quan, phân tích đối thủ cạnh tranh trong bán kính và tính toán lộ trình đi bộ/xe máy thực tế.
               </p>
             </div>
 
             {/* Card 2: 3D Digital Twin */}
-            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5 transition hover:border-slate-300 hover:bg-slate-50">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
-                <Box className="h-5 w-5" />
+            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5 sm:p-6 transition hover:border-slate-300 hover:bg-slate-50">
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
+                <Box className="h-6 w-6" />
               </div>
-              <h3 className="mt-4 text-sm font-bold text-slate-900">
+              <h3 className="mt-4 text-base sm:text-lg font-bold text-slate-900">
                 3D Digital Twin & Mặt bằng 2D
               </h3>
-              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">
                 Khám phá cấu trúc đa tầng, bóc tách mặt bằng 2D chuẩn kỹ thuật, hiển thị diện tích phòng, chiều cao trần và các tiện ích kỹ thuật âm tường.
               </p>
             </div>
 
             {/* Card 3: Sunlight & Setup Simulation */}
-            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5 transition hover:border-slate-300 hover:bg-slate-50">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
-                <SunMedium className="h-5 w-5" />
+            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5 sm:p-6 transition hover:border-slate-300 hover:bg-slate-50">
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                <SunMedium className="h-6 w-6" />
               </div>
-              <h3 className="mt-4 text-sm font-bold text-slate-900">
+              <h3 className="mt-4 text-base sm:text-lg font-bold text-slate-900">
                 Mô phỏng Ánh sáng & Setup AI
               </h3>
-              <p className="mt-2 text-xs leading-relaxed text-slate-600">
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">
                 Mô phỏng hướng nắng chiếu vào mặt tiền theo từng giờ trong ngày tại tọa độ Hà Nội, gợi ý phương án bố trí nội thất và dự toán ngân sách chi tiết.
               </p>
             </div>
