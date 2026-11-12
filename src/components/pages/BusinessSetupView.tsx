@@ -266,6 +266,14 @@ export const BusinessSetupView: React.FC = () => {
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [showAdvancedTune, setShowAdvancedTune] = useState(false);
 
+  // Progressive Disclosure states: all lists collapsed by default as requested
+  const [showBusinessList, setShowBusinessList] = useState(false);
+  const [showLayoutList, setShowLayoutList] = useState(false);
+  const [showStyleList, setShowStyleList] = useState(false);
+  const [showFurnitureList, setShowFurnitureList] = useState(false);
+  const [showBudgetBreakdown, setShowBudgetBreakdown] = useState(false);
+  const [showSafetyChecks, setShowSafetyChecks] = useState(false);
+
   const selectedProperty = useMemo(
     () => properties.find((p) => p.id === selectedPropertyId) || properties[0],
     [properties, selectedPropertyId]
@@ -634,6 +642,7 @@ export const BusinessSetupView: React.FC = () => {
                 property={selectedProperty}
                 floorLevel={selectedFloor === 'all' ? 1 : selectedFloor}
                 editable={true}
+                hideTopBar={true}
               />
             </div>
           )}
@@ -870,7 +879,7 @@ export const BusinessSetupView: React.FC = () => {
           {/* ==================================================== */}
           {studioTab === 'concept' && (
             <>
-              {/* Step 1: Chọn mô hình kinh doanh (8 options) */}
+              {/* Step 1: Chọn mô hình kinh doanh */}
               <section className="space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div>
@@ -878,7 +887,7 @@ export const BusinessSetupView: React.FC = () => {
                       Bước 1 / 3 • Mô hình kinh doanh
                     </span>
                     <h2 className="text-xs font-bold text-slate-900">
-                      Chọn Mô Hình Kinh Doanh (8 Ngành Nghề)
+                      Mô Hình Kinh Doanh
                     </h2>
                   </div>
                   <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 border border-blue-200">
@@ -886,60 +895,106 @@ export const BusinessSetupView: React.FC = () => {
                   </span>
                 </div>
 
-                <div id="tour-studio-business" className="grid grid-cols-2 gap-2">
-                  {(Object.keys(BUSINESS_TYPE_META) as BusinessType[]).map(
-                    (bType) => {
-                      const meta = BUSINESS_TYPE_META[bType];
-                      const Icon = BUSINESS_ICONS[bType] || Store;
-                      const isSelected = selectedBusinessType === bType;
-                      const isRecommended =
-                        selectedProperty.suitableBusinesses.includes(bType);
+                {/* Selected Business Hero Card */}
+                {(() => {
+                  const currentMeta = BUSINESS_TYPE_META[selectedBusinessType];
+                  const CurrentIcon = BUSINESS_ICONS[selectedBusinessType] || Store;
+                  const isRecommended = selectedProperty.suitableBusinesses.includes(selectedBusinessType);
+                  return (
+                    <div className="rounded-xl border border-blue-200 bg-blue-50/40 p-3 shadow-xs">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white shadow-2xs">
+                            <CurrentIcon className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-xs font-bold text-slate-900 truncate">
+                                {currentMeta.labelVi}
+                              </span>
+                              {isRecommended && (
+                                <span className="inline-flex items-center gap-0.5 text-[9px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                  <Check className="h-2.5 w-2.5" />
+                                  Phù hợp mặt bằng
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-slate-500 mt-0.5">
+                              Chuẩn diện tích: {currentMeta.defaultAreaRange[0]}–{currentMeta.defaultAreaRange[1]}m²
+                            </div>
+                          </div>
+                        </div>
 
-                      return (
                         <button
-                          key={bType}
                           type="button"
-                          onClick={() => setSelectedBusinessType(bType)}
-                          className={`flex flex-col text-left rounded-xl border p-2.5 transition-all ${
-                            isSelected
-                              ? 'border-blue-600 bg-blue-50/70 shadow-xs'
-                              : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
-                          }`}
+                          onClick={() => setShowBusinessList(!showBusinessList)}
+                          className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors px-2.5 py-1.5 rounded-lg hover:bg-blue-100/60 shrink-0"
                         >
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
-                                isSelected
-                                  ? 'bg-blue-600 text-white'
-                                  : 'bg-slate-100 text-slate-600'
-                              }`}
-                            >
-                              <Icon className="h-4 w-4" />
-                            </div>
-                            <span
-                              className={`truncate text-xs font-semibold ${
-                                isSelected ? 'text-blue-950 font-bold' : 'text-slate-800'
-                              }`}
-                            >
-                              {meta.labelVi}
-                            </span>
-                          </div>
-
-                          <div className="mt-2 text-[10px] text-slate-500">
-                            Chuẩn: {meta.defaultAreaRange[0]}–{meta.defaultAreaRange[1]}m²
-                          </div>
-
-                          {isRecommended && (
-                            <div className="mt-1.5 flex items-center gap-1 text-[9px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 self-start">
-                              <Check className="h-2.5 w-2.5" />
-                              <span>Phù hợp mặt bằng</span>
-                            </div>
-                          )}
+                          <span>{showBusinessList ? 'Thu gọn' : 'Đổi ngành nghề'}</span>
+                          {showBusinessList ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                         </button>
-                      );
-                    }
-                  )}
-                </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Collapsible 8 Business Models Grid */}
+                {showBusinessList && (
+                  <div id="tour-studio-business" className="grid grid-cols-2 gap-2 pt-1">
+                    {(Object.keys(BUSINESS_TYPE_META) as BusinessType[]).map(
+                      (bType) => {
+                        const meta = BUSINESS_TYPE_META[bType];
+                        const Icon = BUSINESS_ICONS[bType] || Store;
+                        const isSelected = selectedBusinessType === bType;
+                        const isRecommended =
+                          selectedProperty.suitableBusinesses.includes(bType);
+
+                        return (
+                          <button
+                            key={bType}
+                            type="button"
+                            onClick={() => setSelectedBusinessType(bType)}
+                            className={`flex flex-col text-left rounded-xl border p-2.5 transition-all ${
+                              isSelected
+                                ? 'border-blue-600 bg-blue-50/70 shadow-xs'
+                                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                                  isSelected
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-slate-100 text-slate-600'
+                                }`}
+                              >
+                                <Icon className="h-4 w-4" />
+                              </div>
+                              <span
+                                className={`truncate text-xs font-semibold ${
+                                  isSelected ? 'text-blue-950 font-bold' : 'text-slate-800'
+                                }`}
+                              >
+                                {meta.labelVi}
+                              </span>
+                            </div>
+
+                            <div className="mt-2 text-[10px] text-slate-500">
+                              Chuẩn: {meta.defaultAreaRange[0]}–{meta.defaultAreaRange[1]}m²
+                            </div>
+
+                            {isRecommended && (
+                              <div className="mt-1.5 flex items-center gap-1 text-[9px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 self-start">
+                                <Check className="h-2.5 w-2.5" />
+                                <span>Phù hợp mặt bằng</span>
+                              </div>
+                            )}
+                          </button>
+                        );
+                      }
+                    )}
+                  </div>
+                )}
               </section>
 
               {/* Step 2a: Chọn phương án bố trí mặt bằng (AI Layout Presets) */}
@@ -950,7 +1005,7 @@ export const BusinessSetupView: React.FC = () => {
                       Bước 1 / 3 • Phương án mặt bằng
                     </span>
                     <h2 className="text-xs font-bold text-slate-900">
-                      Phương Án Bố Trí Mặt Bằng (AI Layout Presets)
+                      Phương Án Bố Trí Mặt Bằng
                     </h2>
                   </div>
                   <span className="text-[11px] text-slate-500 font-medium">
@@ -958,63 +1013,110 @@ export const BusinessSetupView: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="space-y-2">
-                  {layoutPresets.map((preset) => {
-                    const isSelected = activePreset?.id === preset.id;
-                    return (
-                      <button
-                        key={preset.id}
-                        type="button"
-                        onClick={() => selectLayoutPreset(preset.id)}
-                        className={`w-full rounded-xl border p-3 text-left transition-all ${
-                          isSelected
-                            ? 'border-blue-600 bg-blue-50/50 shadow-xs ring-1 ring-blue-600/30'
-                            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-2">
+                {/* Selected Preset Hero Card */}
+                {activePreset && (
+                  <div className="rounded-xl border border-blue-200 bg-blue-50/40 p-3 shadow-xs space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-1.5">
                           <span className="text-xs font-bold text-slate-900">
-                            {preset.name}
+                            {activePreset.name}
                           </span>
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                              isSelected
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-slate-100 text-slate-600'
-                            }`}
-                          >
-                            {preset.items.length} hạng mục
+                          <span className="rounded-full bg-blue-600 text-white px-2 py-0.5 text-[9px] font-semibold">
+                            Đang áp dụng
                           </span>
                         </div>
-                        <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
-                          {preset.description}
+                        <p className="mt-0.5 text-[11px] text-slate-600 leading-snug">
+                          {activePreset.description}
                         </p>
-                        <div className="mt-2.5 flex flex-wrap items-center gap-3 text-[10px] text-slate-500 pt-2 border-t border-slate-100">
-                          <span>
-                            Sức chứa:{' '}
-                            <strong className="text-slate-800">
-                              {preset.capacityPersons} người
-                            </strong>
-                          </span>
-                          <span>•</span>
-                          <span>
-                            Mật độ:{' '}
-                            <strong className="text-emerald-700">
-                              {preset.spaceUtilizationPct}%
-                            </strong>
-                          </span>
-                          <span>•</span>
-                          <span>
-                            Lối đi:{' '}
-                            <strong className="text-blue-700">
-                              {preset.aisleWidthMeters}m
-                            </strong>
-                          </span>
-                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowLayoutList(!showLayoutList)}
+                        className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors px-2.5 py-1.5 rounded-lg hover:bg-blue-100/60 shrink-0"
+                      >
+                        <span>{showLayoutList ? 'Thu gọn' : 'Đổi phương án'}</span>
+                        {showLayoutList ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                       </button>
-                    );
-                  })}
-                </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-500 pt-1.5 border-t border-blue-100/80">
+                      <span>
+                        Sức chứa: <strong className="text-slate-800">{activePreset.capacityPersons} người</strong>
+                      </span>
+                      <span>•</span>
+                      <span>
+                        Mật độ: <strong className="text-emerald-700">{activePreset.spaceUtilizationPct}%</strong>
+                      </span>
+                      <span>•</span>
+                      <span>
+                        Lối đi: <strong className="text-blue-700">{activePreset.aisleWidthMeters}m</strong>
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Collapsible Layout Presets List */}
+                {showLayoutList && (
+                  <div className="space-y-2 pt-1">
+                    {layoutPresets.map((preset) => {
+                      const isSelected = activePreset?.id === preset.id;
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => selectLayoutPreset(preset.id)}
+                          className={`w-full rounded-xl border p-3 text-left transition-all ${
+                            isSelected
+                              ? 'border-blue-600 bg-blue-50/50 shadow-xs ring-1 ring-blue-600/30'
+                              : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-bold text-slate-900">
+                              {preset.name}
+                            </span>
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                                isSelected
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-slate-100 text-slate-600'
+                              }`}
+                            >
+                              {preset.items.length} hạng mục
+                            </span>
+                          </div>
+                          <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
+                            {preset.description}
+                          </p>
+                          <div className="mt-2.5 flex flex-wrap items-center gap-3 text-[10px] text-slate-500 pt-2 border-t border-slate-100">
+                            <span>
+                              Sức chứa:{' '}
+                              <strong className="text-slate-800">
+                                {preset.capacityPersons} người
+                              </strong>
+                            </span>
+                            <span>•</span>
+                            <span>
+                              Mật độ:{' '}
+                              <strong className="text-emerald-700">
+                                {preset.spaceUtilizationPct}%
+                              </strong>
+                            </span>
+                            <span>•</span>
+                            <span>
+                              Lối đi:{' '}
+                              <strong className="text-blue-700">
+                                {preset.aisleWidthMeters}m
+                              </strong>
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </section>
 
               {/* Step 2b: Phong cách thiết kế & Bảng vật liệu 3D */}
@@ -1025,7 +1127,7 @@ export const BusinessSetupView: React.FC = () => {
                       Bước 1 / 3 • Phong cách thiết kế
                     </span>
                     <h2 className="text-xs font-bold text-slate-900">
-                      Phong Cách Thiết Kế (Design Style)
+                      Phong Cách Thiết Kế
                     </h2>
                   </div>
                   <span className="text-[10px] text-slate-500">
@@ -1033,69 +1135,135 @@ export const BusinessSetupView: React.FC = () => {
                   </span>
                 </div>
 
-                <div id="tour-studio-style" className="grid grid-cols-2 gap-2">
-                  {(Object.keys(DESIGN_STYLE_META) as DesignStyle[]).map(
-                    (styleKey) => {
-                      const sMeta = DESIGN_STYLE_META[styleKey];
-                      const isSelected = selectedDesignStyle === styleKey;
-                      return (
-                        <button
-                          key={styleKey}
-                          type="button"
-                          onClick={() => setSelectedDesignStyle(styleKey)}
-                          className={`flex flex-col justify-between rounded-xl border p-2.5 text-left transition-all ${
-                            isSelected
-                              ? 'border-blue-600 bg-blue-50/50 shadow-xs'
-                              : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
-                          }`}
-                        >
-                          <div>
-                            <div className="flex items-center justify-between gap-1">
-                              <span className="text-xs font-bold text-slate-900">
-                                {sMeta.label}
-                              </span>
-                              <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700">
-                                x{sMeta.costMultiplier.toFixed(2)}
-                              </span>
-                            </div>
-                            <p className="mt-1 line-clamp-2 text-[10px] text-slate-500">
-                              {sMeta.description}
-                            </p>
+                {/* Selected Style Hero Card */}
+                {(() => {
+                  const sMeta = DESIGN_STYLE_META[selectedDesignStyle];
+                  return (
+                    <div className="rounded-xl border border-blue-200 bg-blue-50/40 p-3 shadow-xs space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-slate-900">
+                              {sMeta.label}
+                            </span>
+                            <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700">
+                              x{sMeta.costMultiplier.toFixed(2)}
+                            </span>
                           </div>
+                          <p className="mt-0.5 text-[11px] text-slate-600 leading-snug">
+                            {sMeta.description}
+                          </p>
+                        </div>
 
-                          {/* Color Palette Preview Dots */}
-                          <div className="mt-2.5 flex items-center gap-1.5 pt-2 border-t border-slate-100">
-                            <span
-                              className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
-                              style={{ backgroundColor: sMeta.wallColor }}
-                              title={`Tường: ${sMeta.wallColor}`}
-                            />
-                            <span
-                              className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
-                              style={{ backgroundColor: sMeta.floorColor }}
-                              title={`Sàn: ${sMeta.floorColor}`}
-                            />
-                            <span
-                              className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
-                              style={{ backgroundColor: sMeta.woodTone }}
-                              title={`Gỗ: ${sMeta.woodTone}`}
-                            />
-                            <span
-                              className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
-                              style={{ backgroundColor: sMeta.metalTone }}
-                              title={`Kim loại: ${sMeta.metalTone}`}
-                            />
-                            <span
-                              className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
-                              style={{ backgroundColor: sMeta.accentColor }}
-                              title={`Điểm nhấn: ${sMeta.accentColor}`}
-                            />
-                          </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowStyleList(!showStyleList)}
+                          className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors px-2.5 py-1.5 rounded-lg hover:bg-blue-100/60 shrink-0"
+                        >
+                          <span>{showStyleList ? 'Thu gọn' : 'Đổi phong cách'}</span>
+                          {showStyleList ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                         </button>
-                      );
-                    }
-                  )}
-                </div>
+                      </div>
+
+                      {/* Color Palette Preview Dots */}
+                      <div className="flex items-center gap-1.5 pt-1.5 border-t border-blue-100/80">
+                        <span className="text-[10px] text-slate-500 mr-1">Bảng màu:</span>
+                        <span
+                          className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
+                          style={{ backgroundColor: sMeta.wallColor }}
+                          title={`Tường: ${sMeta.wallColor}`}
+                        />
+                        <span
+                          className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
+                          style={{ backgroundColor: sMeta.floorColor }}
+                          title={`Sàn: ${sMeta.floorColor}`}
+                        />
+                        <span
+                          className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
+                          style={{ backgroundColor: sMeta.woodTone }}
+                          title={`Gỗ: ${sMeta.woodTone}`}
+                        />
+                        <span
+                          className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
+                          style={{ backgroundColor: sMeta.metalTone }}
+                          title={`Kim loại: ${sMeta.metalTone}`}
+                        />
+                        <span
+                          className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
+                          style={{ backgroundColor: sMeta.accentColor }}
+                          title={`Điểm nhấn: ${sMeta.accentColor}`}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Collapsible 4 Design Styles Grid */}
+                {showStyleList && (
+                  <div id="tour-studio-style" className="grid grid-cols-2 gap-2 pt-1">
+                    {(Object.keys(DESIGN_STYLE_META) as DesignStyle[]).map(
+                      (styleKey) => {
+                        const sMeta = DESIGN_STYLE_META[styleKey];
+                        const isSelected = selectedDesignStyle === styleKey;
+                        return (
+                          <button
+                            key={styleKey}
+                            type="button"
+                            onClick={() => setSelectedDesignStyle(styleKey)}
+                            className={`flex flex-col justify-between rounded-xl border p-2.5 text-left transition-all ${
+                              isSelected
+                                ? 'border-blue-600 bg-blue-50/50 shadow-xs'
+                                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-center justify-between gap-1">
+                                <span className="text-xs font-bold text-slate-900">
+                                  {sMeta.label}
+                                </span>
+                                <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700">
+                                  x{sMeta.costMultiplier.toFixed(2)}
+                                </span>
+                              </div>
+                              <p className="mt-1 line-clamp-2 text-[10px] text-slate-500">
+                                {sMeta.description}
+                              </p>
+                            </div>
+
+                            {/* Color Palette Preview Dots */}
+                            <div className="mt-2.5 flex items-center gap-1.5 pt-2 border-t border-slate-100">
+                              <span
+                                className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
+                                style={{ backgroundColor: sMeta.wallColor }}
+                                title={`Tường: ${sMeta.wallColor}`}
+                              />
+                              <span
+                                className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
+                                style={{ backgroundColor: sMeta.floorColor }}
+                                title={`Sàn: ${sMeta.floorColor}`}
+                              />
+                              <span
+                                className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
+                                style={{ backgroundColor: sMeta.woodTone }}
+                                title={`Gỗ: ${sMeta.woodTone}`}
+                              />
+                              <span
+                                className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
+                                style={{ backgroundColor: sMeta.metalTone }}
+                                title={`Kim loại: ${sMeta.metalTone}`}
+                              />
+                              <span
+                                className="h-3.5 w-3.5 rounded-full border border-slate-300 shadow-xs"
+                                style={{ backgroundColor: sMeta.accentColor }}
+                                title={`Điểm nhấn: ${sMeta.accentColor}`}
+                              />
+                            </div>
+                          </button>
+                        );
+                      }
+                    )}
+                  </div>
+                )}
               </section>
 
               {/* Next Step Action Button */}
@@ -1408,74 +1576,100 @@ export const BusinessSetupView: React.FC = () => {
                 </div>
               )}
 
-              {/* Items List Filtered by Floor */}
+              {/* Items List Filtered by Floor (Progressive Disclosure) */}
               <section className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xs font-bold text-slate-900">
-                    Danh Sách Hạng Mục Nội Thất ({floorFilteredFurniture.length})
-                  </h2>
-                  <span className="text-[10px] text-slate-500">
-                    {selectedFloor === 'all'
-                      ? 'Tất cả tầng'
-                      : `Đang lọc Tầng ${selectedFloor}`}
-                  </span>
-                </div>
-
-                <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-                  {floorFilteredFurniture.map((item) => {
-                    const isSelected = item.id === selectedFurnitureId;
-                    const catHidden = hiddenFurnitureCategories.includes(item.category);
-                    const effectiveVis = item.visible && !catHidden;
-
-                    return (
-                      <div
-                        key={item.id}
-                        onClick={() => selectFurnitureItem(item.id)}
-                        className={`flex cursor-pointer items-center justify-between gap-2 rounded-xl border p-2.5 transition-all ${
-                          isSelected
-                            ? 'border-blue-600 bg-blue-50/50 shadow-xs'
-                            : 'border-slate-200 bg-white hover:border-slate-300'
-                        } ${!effectiveVis ? 'opacity-50' : ''}`}
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-700">
-                              T{item.floor}
-                            </span>
-                            <span className="truncate text-xs font-semibold text-slate-900">
-                              {item.name}
-                            </span>
-                          </div>
-                          <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500 font-mono">
-                            <span>X:{item.position[0].toFixed(1)}m</span>
-                            <span>Z:{item.position[2].toFixed(1)}m</span>
-                            <span>•</span>
-                            <span className="text-emerald-700 font-medium">
-                              {formatVND(item.unitCostVND)}
-                            </span>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            updateFurnitureItem(item.id, {
-                              visible: !item.visible,
-                            });
-                          }}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-800 transition-colors"
-                          title={item.visible ? 'Ẩn hạng mục' : 'Hiện hạng mục'}
-                        >
-                          {effectiveVis ? (
-                            <Eye className="h-3.5 w-3.5 text-emerald-600" />
-                          ) : (
-                            <EyeOff className="h-3.5 w-3.5 text-slate-400" />
-                          )}
-                        </button>
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setShowFurnitureList(!showFurnitureList)}
+                    className="w-full flex items-center justify-between p-3.5 text-left hover:bg-slate-50 transition-colors"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-900">
+                          Danh Sách Hạng Mục Nội Thất ({floorFilteredFurniture.length})
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          {selectedFloor === 'all'
+                            ? 'Tất cả tầng'
+                            : `Tầng ${selectedFloor}`}
+                        </span>
                       </div>
-                    );
-                  })}
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        {showFurnitureList
+                          ? 'Bấm để thu gọn danh sách'
+                          : 'Bấm để xem chi tiết vị trí X/Z & bật/tắt từng món'}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0 text-xs font-semibold text-blue-600">
+                      <span>{showFurnitureList ? 'Thu gọn' : 'Xem chi tiết'}</span>
+                      {showFurnitureList ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </div>
+                  </button>
+
+                  {showFurnitureList && (
+                    <div className="p-3 border-t border-slate-200 bg-slate-50/50 space-y-1.5 max-h-72 overflow-y-auto pr-1">
+                      {floorFilteredFurniture.map((item) => {
+                        const isSelected = item.id === selectedFurnitureId;
+                        const catHidden = hiddenFurnitureCategories.includes(item.category);
+                        const effectiveVis = item.visible && !catHidden;
+
+                        return (
+                          <div
+                            key={item.id}
+                            onClick={() => selectFurnitureItem(item.id)}
+                            className={`flex cursor-pointer items-center justify-between gap-2 rounded-xl border p-2.5 transition-all ${
+                              isSelected
+                                ? 'border-blue-600 bg-blue-50/50 shadow-xs'
+                                : 'border-slate-200 bg-white hover:border-slate-300'
+                            } ${!effectiveVis ? 'opacity-50' : ''}`}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-slate-700">
+                                  T{item.floor}
+                                </span>
+                                <span className="truncate text-xs font-semibold text-slate-900">
+                                  {item.name}
+                                </span>
+                              </div>
+                              <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500 font-mono">
+                                <span>X:{item.position[0].toFixed(1)}m</span>
+                                <span>Z:{item.position[2].toFixed(1)}m</span>
+                                <span>•</span>
+                                <span className="text-emerald-700 font-medium">
+                                  {formatVND(item.unitCostVND)}
+                                </span>
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                updateFurnitureItem(item.id, {
+                                  visible: !item.visible,
+                                });
+                              }}
+                              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-800 transition-colors"
+                              title={item.visible ? 'Ẩn hạng mục' : 'Hiện hạng mục'}
+                            >
+                              {effectiveVis ? (
+                                <Eye className="h-3.5 w-3.5 text-emerald-600" />
+                              ) : (
+                                <EyeOff className="h-3.5 w-3.5 text-slate-400" />
+                              )}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </section>
 
@@ -1592,91 +1786,142 @@ export const BusinessSetupView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 6 Category Breakdown List */}
-                <div className="space-y-2">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                    Phân Bổ Ngân Sách 6 Nhóm Hạng Mục
-                  </h3>
-                  <div className="space-y-2">
-                    {budgetSummary.lines.map((line) => {
-                      const pct = Math.round(
-                        (line.estimateVND /
-                          Math.max(budgetSummary.totalEstimateVND, 1)) *
-                          100
-                      );
-                      return (
-                        <div
-                          key={line.category}
-                          className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs font-semibold text-slate-900">
-                              {line.label}
-                            </span>
-                            <span className="font-mono text-xs font-bold text-blue-700">
-                              {formatVND(line.minVND)} – {formatVND(line.maxVND)}
-                            </span>
+                {/* 6 Category Breakdown List (Progressive Disclosure) */}
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setShowBudgetBreakdown(!showBudgetBreakdown)}
+                    className="w-full flex items-center justify-between p-3.5 text-left hover:bg-slate-50 transition-colors"
+                  >
+                    <div>
+                      <h3 className="text-xs font-bold text-slate-900">
+                        Chi Tiết Phân Bổ 6 Nhóm Hạng Mục
+                      </h3>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        {showBudgetBreakdown
+                          ? 'Bấm để thu gọn bảng chi phí'
+                          : 'Mặt bằng, Xây dựng, Nội thất, Thiết bị, M&E, Dự phòng'}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0 text-xs font-semibold text-blue-600">
+                      <span>{showBudgetBreakdown ? 'Thu gọn' : 'Xem chi tiết'}</span>
+                      {showBudgetBreakdown ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </div>
+                  </button>
+
+                  {showBudgetBreakdown && (
+                    <div className="p-3.5 space-y-2 border-t border-slate-200 bg-slate-50/50">
+                      {budgetSummary.lines.map((line) => {
+                        const pct = Math.round(
+                          (line.estimateVND /
+                            Math.max(budgetSummary.totalEstimateVND, 1)) *
+                            100
+                        );
+                        return (
+                          <div
+                            key={line.category}
+                            className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-semibold text-slate-900">
+                                {line.label}
+                              </span>
+                              <span className="font-mono text-xs font-bold text-blue-700">
+                                {formatVND(line.minVND)} – {formatVND(line.maxVND)}
+                              </span>
+                            </div>
+                            <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
+                              <span>{line.note}</span>
+                              <span className="font-mono text-slate-700 font-semibold">
+                                ~{pct}%
+                              </span>
+                            </div>
+                            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                              <div
+                                className="h-full rounded-full bg-blue-600"
+                                style={{ width: `${Math.min(pct, 100)}%` }}
+                              />
+                            </div>
                           </div>
-                          <div className="mt-1 flex items-center justify-between text-[10px] text-slate-500">
-                            <span>{line.note}</span>
-                            <span className="font-mono text-slate-700 font-semibold">
-                              ~{pct}%
-                            </span>
-                          </div>
-                          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                            <div
-                              className="h-full rounded-full bg-blue-600"
-                              style={{ width: `${Math.min(pct, 100)}%` }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
-                {/* Spatial Constraints & Safety Checks */}
-                <div className="space-y-2">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                    Kiểm Tra Không Gian & Lối Đi
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-start gap-2.5 rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
-                      {spatialAudit.minAisleMeters >= 1.2 ? (
-                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
-                      ) : (
-                        <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
-                      )}
-                      <div>
-                        <div className="text-xs font-semibold text-slate-900">
-                          Lối đi nội bộ: {spatialAudit.minAisleMeters}m
-                        </div>
-                        <p className="mt-0.5 text-[11px] text-slate-600">
-                          {spatialAudit.minAisleMeters >= 1.2
-                            ? 'Đạt chuẩn khuyến nghị (>= 1.2m) cho luồng di chuyển khách và nhân viên.'
-                            : 'Hơi hẹp (< 1.2m). Nên bố trí khoảng lùi hợp lý để tránh ùn ứ giờ cao điểm.'}
-                        </p>
+                {/* Spatial Constraints & Safety Checks (Progressive Disclosure) */}
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setShowSafetyChecks(!showSafetyChecks)}
+                    className="w-full flex items-center justify-between p-3.5 text-left hover:bg-slate-50 transition-colors"
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        <h3 className="text-xs font-bold text-slate-900">
+                          Kiểm Tra Tiêu Chuẩn Không Gian & Lối Đi
+                        </h3>
                       </div>
+                      <p className="text-[11px] text-emerald-700 font-medium mt-0.5">
+                        Đạt chuẩn lối đi nội bộ ({spatialAudit.minAisleMeters}m) & sảnh đón thông thoáng
+                      </p>
                     </div>
 
-                    <div className="flex items-start gap-2.5 rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
-                      {spatialAudit.doorwayClear ? (
-                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
+                    <div className="flex items-center gap-1.5 shrink-0 text-xs font-semibold text-blue-600">
+                      <span>{showSafetyChecks ? 'Thu gọn' : 'Xem chi tiết'}</span>
+                      {showSafetyChecks ? (
+                        <ChevronUp className="h-4 w-4" />
                       ) : (
-                        <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+                        <ChevronDown className="h-4 w-4" />
                       )}
-                      <div>
-                        <div className="text-xs font-semibold text-slate-900">
-                          Độ thông thoáng cửa chính mặt tiền
+                    </div>
+                  </button>
+
+                  {showSafetyChecks && (
+                    <div className="p-3.5 space-y-2 border-t border-slate-200 bg-slate-50/50">
+                      <div className="flex items-start gap-2.5 rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
+                        {spatialAudit.minAisleMeters >= 1.2 ? (
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
+                        ) : (
+                          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+                        )}
+                        <div>
+                          <div className="text-xs font-semibold text-slate-900">
+                            Lối đi nội bộ: {spatialAudit.minAisleMeters}m
+                          </div>
+                          <p className="mt-0.5 text-[11px] text-slate-600">
+                            {spatialAudit.minAisleMeters >= 1.2
+                              ? 'Đạt chuẩn khuyến nghị (>= 1.2m) cho luồng di chuyển khách và nhân viên.'
+                              : 'Hơi hẹp (< 1.2m). Nên bố trí khoảng lùi hợp lý để tránh ùn ứ giờ cao điểm.'}
+                          </p>
                         </div>
-                        <p className="mt-0.5 text-[11px] text-slate-600">
-                          {spatialAudit.doorwayClear
-                            ? 'Khu vực sảnh đón mặt tiền hoàn toàn thông suốt, tầm nhìn mở.'
-                            : 'Cảnh báo: Có vật dụng đặt quá gần cửa chính Tầng 1.'}
-                        </p>
+                      </div>
+
+                      <div className="flex items-start gap-2.5 rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
+                        {spatialAudit.doorwayClear ? (
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
+                        ) : (
+                          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+                        )}
+                        <div>
+                          <div className="text-xs font-semibold text-slate-900">
+                            Độ thông thoáng cửa chính mặt tiền
+                          </div>
+                          <p className="mt-0.5 text-[11px] text-slate-600">
+                            {spatialAudit.doorwayClear
+                              ? 'Khu vực sảnh đón mặt tiền hoàn toàn thông suốt, tầm nhìn mở.'
+                              : 'Cảnh báo: Có vật dụng đặt quá gần cửa chính Tầng 1.'}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Mandatory Regulatory & Legal Notice Card */}

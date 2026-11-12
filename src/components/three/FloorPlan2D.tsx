@@ -10,6 +10,8 @@ import {
   Layers,
   Ruler,
   Armchair,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { FurnitureItem, PropertyItem, RoomGeometry } from '@/types';
@@ -22,8 +24,10 @@ export interface FloorPlan2DProps {
   editable?: boolean;
   showFurniture?: boolean;
   showDimensions?: boolean;
+  showLabels?: boolean;
   className?: string;
   compact?: boolean;
+  hideTopBar?: boolean;
   onSelectRoom?: (roomId: string | null) => void;
   onSelectFurniture?: (furnitureId: string | null) => void;
 }
@@ -37,8 +41,10 @@ export function FloorPlan2D({
   editable = false,
   showFurniture: propShowFurniture,
   showDimensions: propShowDimensions,
+  showLabels: propShowLabels,
   className = '',
   compact = false,
+  hideTopBar = false,
   onSelectRoom,
   onSelectFurniture,
 }: FloorPlan2DProps) {
@@ -49,6 +55,7 @@ export function FloorPlan2D({
     selectedRoomId,
     showFurniture: storeShowFurniture,
     showDimensions: storeShowDimensions,
+    showLabels: storeShowLabels,
     furnitureItems,
     selectedFurnitureId,
     hiddenFurnitureCategories,
@@ -56,6 +63,9 @@ export function FloorPlan2D({
     activeTab,
     setSelectedFloor,
     setSelectedRoomId,
+    setShowFurniture,
+    setShowDimensions,
+    toggleShowLabels,
     selectFurnitureItem,
     updateFurnitureItem,
   } = useSpaceVisionStore();
@@ -69,6 +79,8 @@ export function FloorPlan2D({
     propShowFurniture !== undefined ? propShowFurniture : storeShowFurniture;
   const effectiveShowDimensions =
     propShowDimensions !== undefined ? propShowDimensions : storeShowDimensions;
+  const effectiveShowLabels =
+    propShowLabels !== undefined ? propShowLabels : (storeShowLabels ?? true);
   const isEditable = editable || activeTab === 'studio';
 
   // Determine which floor level to display in 2D
@@ -207,68 +219,141 @@ export function FloorPlan2D({
       className={`relative flex flex-col h-full w-full select-none overflow-hidden bg-slate-50 text-slate-900 ${className}`}
     >
       {/* TOP BAR INSIDE 2D VIEWER (Clean Architectural White Capsule Bar) */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-white/95 px-3 py-2 z-10 shadow-sm">
-        {/* Floor Selector Tabs */}
-        <div className="flex items-center gap-1">
-          <span className="mr-1.5 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-            <Layers className="h-3.5 w-3.5 text-slate-600" />
-            <span>Mặt bằng:</span>
-          </span>
-          {property.floors.map((f) => {
-            const active = currentFloorSpec.level === f.level;
-            return (
+      {!hideTopBar ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-white/95 px-3 py-2 z-10 shadow-sm">
+          {/* Floor Selector Tabs */}
+          <div className="flex items-center gap-1">
+            <span className="mr-1.5 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              <Layers className="h-3.5 w-3.5 text-slate-600" />
+              <span>Mặt bằng:</span>
+            </span>
+            {property.floors.map((f) => {
+              const active = currentFloorSpec.level === f.level;
+              return (
+                <button
+                  key={f.level}
+                  onClick={() => setSelectedFloor(f.level)}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
+                    active
+                      ? 'bg-slate-900 text-white font-semibold shadow-sm'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  Tầng {f.level} ({f.totalArea}m²)
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right Controls: Editable Badge & Zoom */}
+          <div className="flex items-center gap-2">
+            {isEditable && (
+              <span className="hidden sm:inline-flex items-center gap-1 rounded-md border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-800">
+                <Move className="h-3 w-3 text-emerald-600" />
+                Kéo thả trực tiếp nội thất trên mặt bằng
+              </span>
+            )}
+
+            {/* Layer toggles: Nhãn chữ, Kích thước, Nội thất */}
+            <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm">
               <button
-                key={f.level}
-                onClick={() => setSelectedFloor(f.level)}
-                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-all ${
-                  active
-                    ? 'bg-slate-900 text-white font-semibold shadow-sm'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                onClick={toggleShowLabels}
+                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                  effectiveShowLabels
+                    ? 'bg-amber-50 text-amber-800 font-semibold'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
                 }`}
+                title="Bật/tắt nhãn tên phòng (Phím tắt: L)"
               >
-                Tầng {f.level} ({f.totalArea}m²)
+                {effectiveShowLabels ? <Eye className="w-3.5 h-3.5 text-amber-600" /> : <EyeOff className="w-3.5 h-3.5 text-slate-400" />}
+                <span className="hidden md:inline">{effectiveShowLabels ? 'Nhãn chữ' : 'Tắt chữ'}</span>
               </button>
-            );
-          })}
-        </div>
 
-        {/* Right Controls: Editable Badge & Zoom */}
-        <div className="flex items-center gap-2">
-          {isEditable && (
-            <span className="hidden sm:inline-flex items-center gap-1 rounded-md border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-800">
-              <Move className="h-3 w-3 text-emerald-600" />
-              Kéo thả trực tiếp nội thất trên mặt bằng
-            </span>
-          )}
+              <button
+                onClick={() => setShowDimensions(!effectiveShowDimensions)}
+                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                  effectiveShowDimensions
+                    ? 'bg-blue-50 text-blue-800 font-semibold'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                }`}
+                title="Bật/tắt đường gióng kích thước"
+              >
+                <Ruler className="w-3.5 h-3.5 text-slate-600" />
+                <span className="hidden md:inline">Kích thước</span>
+              </button>
 
-          <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm">
-            <button
-              onClick={() => setZoom((z) => Math.max(0.65, Number((z - 0.15).toFixed(2))))}
-              className="rounded p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-              title="Thu nhỏ"
-            >
-              <ZoomOut className="h-3.5 w-3.5" />
-            </button>
-            <span className="px-1.5 font-mono text-[11px] text-slate-700 font-medium">
-              {Math.round(zoom * 100)}%
-            </span>
-            <button
-              onClick={() => setZoom((z) => Math.min(1.8, Number((z + 0.15).toFixed(2))))}
-              className="rounded p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-              title="Phóng to"
-            >
-              <ZoomIn className="h-3.5 w-3.5" />
-            </button>
-            <button
-              onClick={() => setZoom(1)}
-              className="rounded p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-              title="Khớp khung hình"
-            >
-              <Maximize2 className="h-3.5 w-3.5" />
-            </button>
+              <button
+                onClick={() => setShowFurniture(!effectiveShowFurniture)}
+                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                  effectiveShowFurniture
+                    ? 'bg-emerald-50 text-emerald-800 font-semibold'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                }`}
+                title="Bật/tắt hiển thị nội thất"
+              >
+                <Armchair className="w-3.5 h-3.5 text-slate-600" />
+                <span className="hidden md:inline">Nội thất</span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm">
+              <button
+                onClick={() => setZoom((z) => Math.max(0.65, Number((z - 0.15).toFixed(2))))}
+                className="rounded p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                title="Thu nhỏ"
+              >
+                <ZoomOut className="h-3.5 w-3.5" />
+              </button>
+              <span className="px-1.5 font-mono text-[11px] text-slate-700 font-medium">
+                {Math.round(zoom * 100)}%
+              </span>
+              <button
+                onClick={() => setZoom((z) => Math.min(1.8, Number((z + 0.15).toFixed(2))))}
+                className="rounded p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                title="Phóng to"
+              >
+                <ZoomIn className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => setZoom(1)}
+                className="rounded p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                title="Khớp khung hình"
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        /* FLOATING MINIMAL ZOOM DOCK (When embedded with hideTopBar=true) */
+        <div className="pointer-events-auto absolute top-16 right-3 z-10 flex items-center gap-1 rounded-xl border border-slate-200/90 bg-white/95 p-1 shadow-md backdrop-blur-md">
+          <button
+            onClick={() => setZoom((z) => Math.max(0.65, Number((z - 0.15).toFixed(2))))}
+            className="rounded p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            title="Thu nhỏ (-)"
+          >
+            <ZoomOut className="h-3.5 w-3.5" />
+          </button>
+          <span className="min-w-[38px] text-center font-mono text-[11px] text-slate-700 font-bold">
+            {Math.round(zoom * 100)}%
+          </span>
+          <button
+            onClick={() => setZoom((z) => Math.min(1.8, Number((z + 0.15).toFixed(2))))}
+            className="rounded p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            title="Phóng to (+)"
+          >
+            <ZoomIn className="h-3.5 w-3.5" />
+          </button>
+          <div className="h-3.5 w-px bg-slate-200 mx-0.5" />
+          <button
+            onClick={() => setZoom(1)}
+            className="rounded p-1 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            title="Khớp khung hình (100%)"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* MAIN INTERACTIVE SVG BLUEPRINT (Crisp Architectural Light Theme) */}
       <div className="relative flex-1 w-full h-full overflow-auto flex items-center justify-center p-2 bg-slate-100/60">
@@ -353,7 +438,7 @@ export function FloorPlan2D({
             />
 
             {/* OUTER BUILDING DIMENSION LINES (TOP & LEFT) */}
-            {effectiveShowDimensions && (
+            {effectiveShowDimensions && effectiveShowLabels && (
               <g className="pointer-events-none">
                 {/* Top Overall Width Dimension */}
                 <line
@@ -440,17 +525,19 @@ export function FloorPlan2D({
             )}
 
             {/* REAR SETBACK LABEL (TOP, z = 0) */}
-            <text
-              x={planW / 2}
-              y={-8}
-              textAnchor="middle"
-              fill="#64748b"
-              fontSize={9}
-              fontWeight="500"
-              fontFamily="sans-serif"
-            >
-              TƯỜNG HẬU & LỐI KỸ THUẬT PHÍA SAU (Z = 0m)
-            </text>
+            {effectiveShowLabels && (
+              <text
+                x={planW / 2}
+                y={-8}
+                textAnchor="middle"
+                fill="#64748b"
+                fontSize={9}
+                fontWeight="500"
+                fontFamily="sans-serif"
+              >
+                TƯỜNG HẬU & LỐI KỸ THUẬT PHÍA SAU (Z = 0m)
+              </text>
+            )}
 
             {/* ROOMS ON CURRENT FLOOR */}
             {currentFloorSpec.rooms.map((room: RoomGeometry) => {
@@ -563,7 +650,7 @@ export function FloorPlan2D({
                   )}
 
                   {/* Room Dimension Tick Lines (Internal) */}
-                  {effectiveShowDimensions && rw > 70 && rd > 55 && (
+                  {effectiveShowDimensions && effectiveShowLabels && rw > 70 && rd > 55 && (
                     <g pointerEvents="none" opacity={0.85}>
                       {/* Internal Width Label */}
                       <text
@@ -591,43 +678,45 @@ export function FloorPlan2D({
                   )}
 
                   {/* Room Center Label (Clean White Architectural Tag) */}
-                  <g
-                    transform={`translate(${rx + rw / 2}, ${rz + rd / 2})`}
-                    pointerEvents="none"
-                  >
-                    <rect
-                      x={-Math.min(rw * 0.44, 92)}
-                      y={-22}
-                      width={Math.min(rw * 0.88, 184)}
-                      height={44}
-                      rx={6}
-                      fill="#ffffff"
-                      fillOpacity={0.96}
-                      stroke={isSelected ? '#2563eb' : '#cbd5e1'}
-                      strokeWidth={isSelected ? 1.8 : 1}
-                    />
-                    <text
-                      x={0}
-                      y={-6}
-                      textAnchor="middle"
-                      fill="#0f172a"
-                      fontSize={rw < 110 ? 9.5 : 11}
-                      fontWeight="bold"
+                  {effectiveShowLabels && (
+                    <g
+                      transform={`translate(${rx + rw / 2}, ${rz + rd / 2})`}
+                      pointerEvents="none"
                     >
-                      {room.name.length > 24 ? `${room.name.slice(0, 22)}…` : room.name}
-                    </text>
-                    <text
-                      x={0}
-                      y={11}
-                      textAnchor="middle"
-                      fill={isSelected ? '#2563eb' : '#475569'}
-                      fontSize={10}
-                      fontFamily="monospace"
-                      fontWeight="bold"
-                    >
-                      {room.area}m² ({room.width}×{room.depth}m • H:{room.height}m)
-                    </text>
-                  </g>
+                      <rect
+                        x={-Math.min(rw * 0.42, 80)}
+                        y={-18}
+                        width={Math.min(rw * 0.84, 160)}
+                        height={36}
+                        rx={5}
+                        fill="#ffffff"
+                        fillOpacity={0.92}
+                        stroke={isSelected ? '#2563eb' : '#cbd5e1'}
+                        strokeWidth={isSelected ? 1.8 : 1}
+                      />
+                      <text
+                        x={0}
+                        y={-3}
+                        textAnchor="middle"
+                        fill="#0f172a"
+                        fontSize={rw < 110 ? 10 : 11}
+                        fontWeight="bold"
+                      >
+                        {room.name.length > 20 ? `${room.name.slice(0, 18)}…` : room.name}
+                      </text>
+                      <text
+                        x={0}
+                        y={11}
+                        textAnchor="middle"
+                        fill={isSelected ? '#2563eb' : '#64748b'}
+                        fontSize={9.5}
+                        fontFamily="monospace"
+                        fontWeight="600"
+                      >
+                        {room.area}m²
+                      </text>
+                    </g>
+                  )}
                 </g>
               );
             })}
@@ -672,17 +761,19 @@ export function FloorPlan2D({
                 },${0.55 * SCALE}`}
                 fill="#2563eb"
               />
-              <text
-                x={0.9 * SCALE}
-                y={2.48 * SCALE}
-                textAnchor="middle"
-                fill="#475569"
-                fontSize={8.5}
-                fontWeight="bold"
-                fontFamily="monospace"
-              >
-                THANG BỘ
-              </text>
+              {effectiveShowLabels && (
+                <text
+                  x={0.9 * SCALE}
+                  y={2.48 * SCALE}
+                  textAnchor="middle"
+                  fill="#475569"
+                  fontSize={8.5}
+                  fontWeight="bold"
+                  fontFamily="monospace"
+                >
+                  THANG BỘ
+                </text>
+              )}
             </g>
 
             {/* OUTER ENVELOPE WALLS & STOREFRONT GLAZING (at z = D) */}
@@ -831,18 +922,20 @@ export function FloorPlan2D({
                     <circle cx={0} cy={0} r={Math.min(fw, fd) * 0.35} fill="#16a34a" />
                   )}
 
-                  {/* Furniture Short Label */}
-                  <text
-                    x={0}
-                    y={3}
-                    textAnchor="middle"
-                    fill="#0f172a"
-                    fontSize={8.5}
-                    fontWeight="bold"
-                    pointerEvents="none"
-                  >
-                    {item.name.length > 12 ? `${item.name.slice(0, 10)}..` : item.name}
-                  </text>
+                  {/* Furniture Short Label - Only when selected */}
+                  {isSelected && effectiveShowLabels && (
+                    <text
+                      x={0}
+                      y={3}
+                      textAnchor="middle"
+                      fill="#0f172a"
+                      fontSize={8.5}
+                      fontWeight="bold"
+                      pointerEvents="none"
+                    >
+                      {item.name.length > 12 ? `${item.name.slice(0, 10)}..` : item.name}
+                    </text>
+                  )}
                 </g>
               );
             })}

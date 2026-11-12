@@ -13,6 +13,8 @@ import {
   Armchair,
   Ruler,
   RotateCcw,
+  Eye,
+  EyeOff,
   X,
   Check,
   MapPin,
@@ -126,6 +128,7 @@ export function DigitalTwinView() {
     cameraMode,
     showFurniture,
     showDimensions,
+    showLabels,
     view2D3DMode,
     selectedBusinessType,
     selectedDesignStyle,
@@ -136,12 +139,25 @@ export function DigitalTwinView() {
     setCameraMode,
     setShowFurniture,
     setShowDimensions,
+    toggleShowLabels,
     setView2D3DMode,
     setActiveTab,
     selectFurnitureItem,
   } = useSpaceVisionStore();
 
   const [resetCounter, setResetCounter] = useState(0);
+
+  // Global Keyboard shortcut 'L' to toggle labels (clean architecture mode)
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'SELECT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (e.key === 'l' || e.key === 'L') {
+        toggleShowLabels();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleShowLabels]);
 
   const property = useMemo(
     () => properties.find((p) => p.id === selectedPropertyId) || properties[0],
@@ -217,7 +233,12 @@ export function DigitalTwinView() {
                 <span>Nội thất 3D</span>
               </button>
               <button
-                onClick={() => setView2D3DMode('2d')}
+                onClick={() => {
+                  if (selectedFloor === 'all') {
+                    setSelectedFloor(1);
+                  }
+                  setView2D3DMode('2d');
+                }}
                 className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
                   view2D3DMode === '2d'
                     ? 'bg-blue-600 text-white font-bold shadow-xs'
@@ -242,9 +263,11 @@ export function DigitalTwinView() {
               </button>
             </div>
 
-            {/* Camera angle and floorplan controls */}
-            <div className="h-4 w-px bg-slate-200 mx-0.5" />
-            <div className="flex items-center gap-1">
+            {/* Camera angle (only in 3D / Split modes) */}
+            {view2D3DMode !== '2d' && (
+              <>
+                <div className="h-4 w-px bg-slate-200 mx-0.5" />
+                <div className="flex items-center gap-1">
                   {CAMERA_MODES.map((mode) => {
                     const Icon = mode.icon;
                     const active = cameraMode === mode.id;
@@ -265,46 +288,68 @@ export function DigitalTwinView() {
                     );
                   })}
                 </div>
+              </>
+            )}
 
-                <div className="h-4 w-px bg-slate-200 mx-0.5" />
+            <div className="h-4 w-px bg-slate-200 mx-0.5" />
 
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setShowFurniture(!showFurniture)}
-                    className={`flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium transition-all ${
-                      showFurniture
-                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                        : 'text-slate-600 hover:bg-slate-100'
-                    }`}
-                    title="Bật/tắt hiển thị nội thất"
-                  >
-                    <Armchair className="h-3.5 w-3.5 text-slate-700" />
-                    <span className="hidden lg:inline">Nội thất</span>
-                  </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setShowFurniture(!showFurniture)}
+                className={`flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium transition-all ${
+                  showFurniture
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+                title="Bật/tắt hiển thị nội thất"
+              >
+                <Armchair className="h-3.5 w-3.5 text-slate-700" />
+                <span className="hidden lg:inline">Nội thất</span>
+              </button>
 
-                  <button
-                    id="tour-twin-dimensions"
-                    onClick={() => setShowDimensions(!showDimensions)}
-                    className={`flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium transition-all ${
-                      showDimensions
-                        ? 'bg-blue-50 text-blue-800 border border-blue-200'
-                        : 'text-slate-600 hover:bg-slate-100'
-                    }`}
-                    title="Bật/tắt đường gióng kích thước (m)"
-                  >
-                    <Ruler className="h-3.5 w-3.5 text-slate-700" />
-                    <span className="hidden lg:inline">Kích thước</span>
-                  </button>
+              <button
+                id="tour-twin-dimensions"
+                onClick={() => setShowDimensions(!showDimensions)}
+                className={`flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium transition-all ${
+                  showDimensions
+                    ? 'bg-blue-50 text-blue-800 border border-blue-200'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+                title="Bật/tắt đường gióng kích thước (m)"
+              >
+                <Ruler className="h-3.5 w-3.5 text-slate-700" />
+                <span className="hidden lg:inline">Kích thước</span>
+              </button>
 
-                  <button
-                    onClick={handleResetCamera}
-                    className="flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all"
-                    title="Đặt lại góc nhìn camera"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Reset</span>
-                  </button>
-                </div>
+              <button
+                id="tour-twin-labels"
+                onClick={toggleShowLabels}
+                className={`flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium transition-all ${
+                  showLabels
+                    ? 'bg-amber-50 text-amber-800 border border-amber-200 font-semibold'
+                    : 'text-slate-500 hover:bg-slate-100'
+                }`}
+                title="Bật/tắt nhãn tên phòng (Phím tắt: L)"
+              >
+                {showLabels ? (
+                  <Eye className="h-3.5 w-3.5 text-amber-700" />
+                ) : (
+                  <EyeOff className="h-3.5 w-3.5 text-slate-400" />
+                )}
+                <span className="hidden lg:inline">{showLabels ? 'Nhãn chữ' : 'Tắt chữ'}</span>
+              </button>
+
+              {view2D3DMode !== '2d' && (
+                <button
+                  onClick={handleResetCamera}
+                  className="flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all"
+                  title="Đặt lại góc nhìn camera"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Reset</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -315,16 +360,18 @@ export function DigitalTwinView() {
             id="tour-twin-floor"
             className="pointer-events-auto flex items-center gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-md backdrop-blur-md"
           >
-            <button
-              onClick={() => setSelectedFloor('all')}
-              className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold transition-all ${
-                selectedFloor === 'all'
-                  ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              Toàn bộ toà nhà
-            </button>
+            {view2D3DMode !== '2d' && (
+              <button
+                onClick={() => setSelectedFloor('all')}
+                className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold transition-all ${
+                  selectedFloor === 'all'
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                Toàn bộ toà nhà
+              </button>
+            )}
 
             {property.floors.map((floor) => {
               const isSelected = selectedFloor === floor.level;
@@ -400,6 +447,8 @@ export function DigitalTwinView() {
                 property={property}
                 floorLevel={selectedFloor === 'all' ? activeFloorSpec?.level || 1 : selectedFloor}
                 editable={false}
+                compact={true}
+                hideTopBar={true}
               />
             </div>
           )}
@@ -421,6 +470,7 @@ export function DigitalTwinView() {
                   property={property}
                   floorLevel={selectedFloor === 'all' ? activeFloorSpec?.level || 1 : selectedFloor}
                   editable={false}
+                  hideTopBar={true}
                 />
                 <div className="pointer-events-none absolute bottom-16 left-3 rounded-lg bg-white/90 border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-800 shadow-sm backdrop-blur-sm">
                   2D Architectural Blueprint

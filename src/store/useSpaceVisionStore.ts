@@ -66,6 +66,7 @@ export interface SpaceVisionState {
   cameraMode: CameraMode;
   showFurniture: boolean;
   showDimensions: boolean;
+  showLabels: boolean;
   view2D3DMode: '3d' | '2d' | 'split';
   timeOfDayHours: number;
   dayOfYear: number;
@@ -113,6 +114,8 @@ export interface SpaceVisionState {
   setCameraMode: (mode: CameraMode) => void;
   setShowFurniture: (show: boolean) => void;
   setShowDimensions: (show: boolean) => void;
+  setShowLabels: (show: boolean) => void;
+  toggleShowLabels: () => void;
   setView2D3DMode: (mode: '3d' | '2d' | 'split') => void;
   setTimeOfDayHours: (hours: number) => void;
   setDayOfYear: (day: number) => void;
@@ -151,6 +154,7 @@ export const useSpaceVisionStore = create<SpaceVisionState>((set, get) => ({
   cameraMode: 'orbit',
   showFurniture: true,
   showDimensions: true,
+  showLabels: true,
   view2D3DMode: '3d',
   timeOfDayHours: 10.5,
   dayOfYear: 172,
@@ -574,6 +578,10 @@ export const useSpaceVisionStore = create<SpaceVisionState>((set, get) => ({
   setShowFurniture: (show) => set({ showFurniture: show }),
 
   setShowDimensions: (show) => set({ showDimensions: show }),
+
+  setShowLabels: (show) => set({ showLabels: show }),
+
+  toggleShowLabels: () => set((s) => ({ showLabels: !s.showLabels })),
 
   setView2D3DMode: (mode) => set({ view2D3DMode: mode }),
 

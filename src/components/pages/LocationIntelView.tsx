@@ -22,6 +22,8 @@ import {
   Loader2,
   MapPin,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   PanelRightClose,
   PanelRightOpen,
   Phone,
@@ -114,6 +116,13 @@ export function LocationIntelView() {
   const [mobileView, setMobileView] = useState<'map' | 'panel'>('map');
   const [flyTargetRouteId, setFlyTargetRouteId] = useState<string | null>(null);
 
+  // Progressive Disclosure Accordion states for breathing room
+  const [showCustomersDetail, setShowCustomersDetail] = useState(false);
+  const [showCompetitorsDetail, setShowCompetitorsDetail] = useState(false);
+  const [showRisksDetail, setShowRisksDetail] = useState(false);
+  const [showPOIBuckets, setShowPOIBuckets] = useState(false);
+  const [showAllPOIs, setShowAllPOIs] = useState(false);
+
   const userClearedRoutesRef = useRef(false);
   const initialRoutedPropertyRef = useRef<string | null>(null);
 
@@ -184,6 +193,14 @@ export function LocationIntelView() {
     activeRoutes.forEach((r) => map.set(r.poiId, r));
     return map;
   }, [activeRoutes]);
+
+  const displayedPOIs = useMemo(() => {
+    if (showAllPOIs) return filteredPOIs;
+    const connected = filteredPOIs.filter((p) => activeRoutes.some((r) => r.poiId === p.id));
+    const rest = filteredPOIs.filter((p) => !activeRoutes.some((r) => r.poiId === p.id));
+    const combined = [...connected, ...rest.slice(0, Math.max(0, 2 - connected.length))];
+    return combined.length > 0 ? combined : filteredPOIs.slice(0, 2);
+  }, [filteredPOIs, showAllPOIs, activeRoutes]);
 
   if (!selectedProperty) return null;
 
@@ -275,96 +292,76 @@ export function LocationIntelView() {
             </button>
           </div>
 
-          {/* Property Selector */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Mặt bằng đang khảo sát:
-            </label>
-            <select
-              value={selectedProperty.id}
-              onChange={(e) => selectProperty(e.target.value)}
-              className="w-full rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
-            >
-              {properties.map((p) => (
-                <option key={p.id} value={p.id}>
-                  [{p.code}] {p.title} ({p.district} • {p.monthlyRentMillionVND} tr/th)
-                </option>
-              ))}
-            </select>
+          {/* Property & Business Type Selectors (Compact 2-Column Grid) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label className="block text-[11px] font-medium text-slate-500 mb-1">
+                Mặt bằng khảo sát:
+              </label>
+              <select
+                value={selectedProperty.id}
+                onChange={(e) => selectProperty(e.target.value)}
+                className="w-full rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-900 focus:bg-white focus:border-blue-500 focus:outline-none"
+              >
+                {properties.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    [{p.code}] {p.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-500 mb-1">
+                Mô hình kinh doanh:
+              </label>
+              <select
+                value={selectedBusinessType}
+                onChange={(e) => setSelectedBusinessType(e.target.value as BusinessType)}
+                className="w-full rounded-lg bg-slate-50 border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-blue-700 focus:bg-white focus:border-blue-500 focus:outline-none"
+              >
+                {BUSINESS_TYPES.map((bt) => (
+                  <option key={bt} value={bt}>
+                    {BUSINESS_TYPE_META[bt]?.labelVi || bt}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          {/* Business Type Selector */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Mô hình kinh doanh đánh giá:
-            </label>
-            <select
-              value={selectedBusinessType}
-              onChange={(e) => setSelectedBusinessType(e.target.value as BusinessType)}
-              className="w-full rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm font-semibold text-blue-700 focus:bg-white focus:border-blue-500 focus:outline-none"
-            >
-              {BUSINESS_TYPES.map((bt) => (
-                <option key={bt} value={bt}>
-                  {BUSINESS_TYPE_META[bt]?.labelVi || bt}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Compact Landlord Contact Block */}
+          {/* Sleek Minimal Landlord Contact Strip */}
           {selectedProperty.contact && (
-            <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200/80 space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-blue-800 uppercase tracking-wide">
-                    {selectedProperty.contact.role || 'Chủ nhà'}
+            <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/90 text-xs">
+              <div className="min-w-0">
+                <span className="font-semibold text-slate-900 truncate block">
+                  {selectedProperty.contact.name}
+                  <span className="text-slate-500 font-normal ml-1 text-[11px]">
+                    ({selectedProperty.contact.role || 'Chủ nhà'})
                   </span>
-                  {selectedProperty.contact.responseSpeed && (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      {selectedProperty.contact.responseSpeed}
-                    </span>
-                  )}
-                </div>
-                {selectedProperty.contact.viewingAvailability && (
-                  <span
-                    className="text-xs text-slate-500 truncate max-w-[180px]"
-                    title={selectedProperty.contact.viewingAvailability}
-                  >
-                    {selectedProperty.contact.viewingAvailability}
-                  </span>
-                )}
+                </span>
+                <span className="text-[11px] font-mono text-slate-500">
+                  {selectedProperty.contact.phone}
+                </span>
               </div>
 
-              <div className="flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="text-sm font-bold text-slate-900 leading-tight truncate">
-                    {selectedProperty.contact.name}
-                  </div>
-                  <div className="text-xs font-mono text-slate-600">
-                    {selectedProperty.contact.phone}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <a
-                    href={`tel:${selectedProperty.contact.phone.replace(/\s+/g, '')}`}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-xs"
-                    title={`Gọi ngay cho ${selectedProperty.contact.name}`}
-                  >
-                    <Phone className="w-3.5 h-3.5" />
-                    <span>Gọi ngay</span>
-                  </a>
-                  <a
-                    href={`https://zalo.me/${(selectedProperty.contact.zaloPhone || selectedProperty.contact.phone).replace(/\s+/g, '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-xs"
-                    title={`Chat Zalo với ${selectedProperty.contact.name}`}
-                  >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    <span>Zalo</span>
-                  </a>
-                </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <a
+                  href={`tel:${selectedProperty.contact.phone.replace(/\s+/g, '')}`}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs transition shadow-2xs"
+                  title={`Gọi cho ${selectedProperty.contact.name}`}
+                >
+                  <Phone className="w-3 h-3" />
+                  <span>Gọi</span>
+                </a>
+                <a
+                  href={`https://zalo.me/${(selectedProperty.contact.zaloPhone || selectedProperty.contact.phone).replace(/\s+/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs transition shadow-2xs"
+                  title={`Chat Zalo với ${selectedProperty.contact.name}`}
+                >
+                  <MessageCircle className="w-3 h-3" />
+                  <span>Zalo</span>
+                </a>
               </div>
             </div>
           )}
@@ -403,124 +400,201 @@ export function LocationIntelView() {
 
         {/* Tab 1: AI Business Intelligence Analysis */}
         {panelTab === 'bi' && biReport && (
-          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50/50">
-            {/* 1. Suitability Summary - Clean Concise Bullets */}
-            <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50">
+            {/* 1. Hero Card: Tiềm Năng Vị Trí & Đánh Giá AI */}
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
                   <Target className="w-4 h-4 text-blue-600" />
-                  Đánh giá vị trí ({BUSINESS_TYPE_META[selectedBusinessType]?.labelVi})
+                  Tiềm năng {BUSINESS_TYPE_META[selectedBusinessType]?.labelVi}
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                  AI Khảo Sát
+                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                  AI Đánh Giá
                 </span>
               </div>
-              <ul className="space-y-1.5 text-xs text-slate-600">
-                {biReport.suitabilitySummary
-                  .split(/(?<=[.!?])\s+/)
-                  .map((s) => s.trim())
-                  .filter((s) => s.length > 8)
-                  .map((bullet, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                      <span className="leading-snug">{bullet}</span>
-                    </li>
-                  ))}
-              </ul>
+
+              {/* Core Verdict - Highlight 1 câu đắt giá nhất */}
+              <p className="text-xs text-slate-700 leading-relaxed font-medium bg-blue-50/50 p-2.5 rounded-xl border border-blue-100/60">
+                {biReport.suitabilitySummary.split(/(?<=[.!?])\s+/)[0]}
+              </p>
+
+              {/* 3 Key Metrics Row - 3 chỉ số cốt lõi */}
+              <div className="grid grid-cols-3 gap-2 pt-0.5">
+                <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 text-center">
+                  <span className="block text-[11px] text-slate-500 font-medium">Khách mục tiêu</span>
+                  <span className="text-xs font-bold text-emerald-700">
+                    {biReport.targetCustomerSegments.length} nhóm
+                  </span>
+                </div>
+                <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 text-center">
+                  <span className="block text-[11px] text-slate-500 font-medium">Đối thủ (500m)</span>
+                  <span
+                    className={`text-xs font-bold ${
+                      biReport.competitorAnalysis.densityLevel === 'High'
+                        ? 'text-rose-600'
+                        : 'text-slate-800'
+                    }`}
+                  >
+                    {biReport.competitorAnalysis.countWithin500m} điểm
+                  </span>
+                </div>
+                <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 text-center">
+                  <span className="block text-[11px] text-slate-500 font-medium">Lưu ý thực địa</span>
+                  <span className="text-xs font-bold text-amber-700">
+                    {biReport.fieldSurveyRisks.length} điểm
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* 2. Target Customer Segments - Concise Cards */}
-            <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+            {/* 2. Collapsible: Tệp Khách Hàng Mục Tiêu (Progressive Disclosure) */}
+            <div className="rounded-2xl bg-white border border-slate-200/90 shadow-xs overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowCustomersDetail(!showCustomersDetail)}
+                className="w-full flex items-center justify-between p-3.5 text-left hover:bg-slate-50/70 transition-colors"
+              >
+                <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-emerald-600" />
-                  Tệp khách hàng trọng tâm
-                </span>
-                <span className="text-[11px] text-slate-500 font-medium">
-                  {biReport.targetCustomerSegments.length} nhóm đối tượng
-                </span>
-              </div>
-              <div className="space-y-2">
-                {biReport.targetCustomerSegments.map((seg, idx) => {
-                  const isRealPOI = seg.basis === 'real_poi';
-                  return (
-                    <div
-                      key={idx}
-                      className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 flex items-start justify-between gap-2"
-                    >
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-slate-800">{seg.segment}</div>
-                        <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">
-                          {seg.rationale}
-                        </p>
+                  <span className="text-xs font-bold text-slate-900">
+                    Tệp khách hàng mục tiêu ({biReport.targetCustomerSegments.length})
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
+                  <span>{showCustomersDetail ? 'Thu gọn' : 'Xem chi tiết'}</span>
+                  {showCustomersDetail ? (
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  )}
+                </div>
+              </button>
+
+              {showCustomersDetail && (
+                <div className="p-3.5 pt-0 space-y-2 border-t border-slate-100 mt-1">
+                  {biReport.targetCustomerSegments.map((seg, idx) => {
+                    const isRealPOI = seg.basis === 'real_poi';
+                    return (
+                      <div
+                        key={idx}
+                        className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-start justify-between gap-2"
+                      >
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-slate-800">{seg.segment}</div>
+                          <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                            {seg.rationale}
+                          </p>
+                        </div>
+                        <span
+                          className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                            isRealPOI
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-purple-50 text-purple-700 border-purple-200'
+                          }`}
+                        >
+                          {isRealPOI ? 'Thực tế' : 'Ước lượng'}
+                        </span>
                       </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* 3. Collapsible: Phân Tích Đối Thủ Cạnh Tranh */}
+            <div className="rounded-2xl bg-white border border-slate-200/90 shadow-xs overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowCompetitorsDetail(!showCompetitorsDetail)}
+                className="w-full flex items-center justify-between p-3.5 text-left hover:bg-slate-50/70 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <Compass className="w-4 h-4 text-rose-600" />
+                  <span className="text-xs font-bold text-slate-900">
+                    Phân tích đối thủ cạnh tranh ({biReport.competitorAnalysis.countWithin500m})
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
+                  <span>{showCompetitorsDetail ? 'Thu gọn' : 'Xem chi tiết'}</span>
+                  {showCompetitorsDetail ? (
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  )}
+                </div>
+              </button>
+
+              {showCompetitorsDetail && (
+                <div className="p-3.5 pt-0 space-y-2 border-t border-slate-100 mt-1">
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="font-semibold text-slate-800">Mức độ cạnh tranh:</span>
                       <span
-                        className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold border ${
-                          isRealPOI
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : 'bg-purple-50 text-purple-700 border-purple-200'
+                        className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                          biReport.competitorAnalysis.densityLevel === 'High'
+                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200'
                         }`}
                       >
-                        {isRealPOI ? 'Dữ liệu thực' : 'Ước lượng'}
+                        {biReport.competitorAnalysis.densityLevel === 'High'
+                          ? 'Mức Cao'
+                          : 'Vừa phải'}
                       </span>
                     </div>
-                  );
-                })}
-              </div>
+                    <ul className="space-y-1.5 text-xs text-slate-600">
+                      {biReport.competitorAnalysis.summary
+                        .split(/(?<=[.!?])\s+/)
+                        .map((s) => s.trim())
+                        .filter((s) => s.length > 5)
+                        .map((bullet, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0 mt-1.5" />
+                            <span className="leading-snug">{bullet}</span>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* 3. Competitor Density - Concise Bullets */}
-            <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Compass className="w-4 h-4 text-rose-600" />
-                  Mật độ đối thủ xung quanh (≤ 500m)
-                </span>
-                <span
-                  className={`px-2 py-0.5 rounded text-xs font-bold border ${
-                    biReport.competitorAnalysis.densityLevel === 'High'
-                      ? 'bg-rose-50 text-rose-700 border-rose-200'
-                      : biReport.competitorAnalysis.densityLevel === 'Moderate'
-                      ? 'bg-amber-50 text-amber-700 border-amber-200'
-                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  }`}
-                >
-                  {biReport.competitorAnalysis.countWithin500m} đối thủ • Mức{' '}
-                  {biReport.competitorAnalysis.densityLevel === 'High'
-                    ? 'Cao'
-                    : biReport.competitorAnalysis.densityLevel === 'Moderate'
-                    ? 'Vừa phải'
-                    : 'Thấp'}
-                </span>
-              </div>
-              <ul className="space-y-1.5 text-xs text-slate-600">
-                {biReport.competitorAnalysis.summary
-                  .split(/(?<=[.!?])\s+/)
-                  .map((s) => s.trim())
-                  .filter((s) => s.length > 5)
-                  .map((bullet, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0 mt-1.5" />
-                      <span className="leading-snug">{bullet}</span>
-                    </li>
-                  ))}
-              </ul>
-            </div>
+            {/* 4. Collapsible: Danh Mục Rủi Ro Cần Khảo Sát Thực Địa */}
+            <div className="rounded-2xl bg-white border border-slate-200/90 shadow-xs overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowRisksDetail(!showRisksDetail)}
+                className="w-full flex items-center justify-between p-3.5 text-left hover:bg-slate-50/70 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-amber-600" />
+                  <span className="text-xs font-bold text-slate-900">
+                    Danh mục rủi ro cần khảo sát thực địa ({biReport.fieldSurveyRisks.length})
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
+                  <span>{showRisksDetail ? 'Thu gọn' : 'Xem chi tiết'}</span>
+                  {showRisksDetail ? (
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  )}
+                </div>
+              </button>
 
-            {/* 4. Field Survey Risks Checklist */}
-            <div className="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200 shadow-xs space-y-2">
-              <div className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                <ShieldAlert className="w-4 h-4 text-amber-600" />
-                Danh mục rủi ro cần khảo sát thực địa
-              </div>
-              <ul className="space-y-1.5 text-xs text-amber-950">
-                {biReport.fieldSurveyRisks.map((risk, i) => (
-                  <li key={i} className="flex items-start gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                    <span>{risk}</span>
-                  </li>
-                ))}
-              </ul>
+              {showRisksDetail && (
+                <div className="p-3.5 pt-0 space-y-2 border-t border-slate-100 mt-1">
+                  <div className="p-3 rounded-xl bg-amber-50/50 border border-amber-200/80">
+                    <ul className="space-y-2 text-xs text-amber-950">
+                      {biReport.fieldSurveyRisks.map((risk, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                          <span className="leading-snug">{risk}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Next Action: Move to 3D Twin */}
@@ -622,130 +696,137 @@ export function LocationIntelView() {
               </div>
             </div>
 
-            {/* 3 Decluttered POI Buckets */}
-            <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-3 shadow-xs">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-800 flex items-center gap-1">
+            {/* 3 Decluttered POI Buckets (Progressive Disclosure) */}
+            <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-xs">
+              <button
+                type="button"
+                onClick={() => setShowPOIBuckets(!showPOIBuckets)}
+                className="w-full flex items-center justify-between text-xs text-left hover:opacity-80 transition"
+              >
+                <span className="font-bold text-slate-800 flex items-center gap-1.5">
                   <Layers className="w-3.5 h-3.5 text-blue-600" />
-                  Nhóm tiện ích phân loại (3 nhóm):
+                  <span>Bộ lọc tiện ích (3 nhóm)</span>
                 </span>
-                <span className="text-[11px] font-medium text-slate-500">
-                  {filteredPOIs.length}/{selectedProperty.nearbyPOIs.length} điểm hiển thị
-                </span>
-              </div>
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-600">
+                  <span>{filteredPOIs.length}/{selectedProperty.nearbyPOIs.length} điểm hiển thị</span>
+                  {showPOIBuckets ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </div>
+              </button>
 
-              <div id="tour-map-poi-filters" className="space-y-2.5">
-                {POI_BUCKETS.map((bucket) => {
-                  const bucketPOICount = bucket.categories.reduce(
-                    (sum, cat) => sum + (categoryCounts[cat] || 0),
-                    0
-                  );
-                  const isAllActive = bucket.categories.every((cat) =>
-                    activePOICategories.includes(cat)
-                  );
-                  const isAnyActive = bucket.categories.some((cat) =>
-                    activePOICategories.includes(cat)
-                  );
+              {showPOIBuckets && (
+                <div id="tour-map-poi-filters" className="space-y-2.5 pt-2 border-t border-slate-100 animate-in fade-in duration-150">
+                  {POI_BUCKETS.map((bucket) => {
+                    const bucketPOICount = bucket.categories.reduce(
+                      (sum, cat) => sum + (categoryCounts[cat] || 0),
+                      0
+                    );
+                    const isAllActive = bucket.categories.every((cat) =>
+                      activePOICategories.includes(cat)
+                    );
+                    const isAnyActive = bucket.categories.some((cat) =>
+                      activePOICategories.includes(cat)
+                    );
 
-                  const handleToggleBucket = () => {
-                    if (isAllActive) {
-                      bucket.categories.forEach((cat) => {
-                        if (activePOICategories.includes(cat)) {
-                          togglePOICategory(cat);
-                        }
-                      });
-                    } else {
-                      bucket.categories.forEach((cat) => {
-                        if (!activePOICategories.includes(cat)) {
-                          togglePOICategory(cat);
-                        }
-                      });
-                    }
-                  };
+                    const handleToggleBucket = () => {
+                      if (isAllActive) {
+                        bucket.categories.forEach((cat) => {
+                          if (activePOICategories.includes(cat)) {
+                            togglePOICategory(cat);
+                          }
+                        });
+                      } else {
+                        bucket.categories.forEach((cat) => {
+                          if (!activePOICategories.includes(cat)) {
+                            togglePOICategory(cat);
+                          }
+                        });
+                      }
+                    };
 
-                  return (
-                    <div
-                      key={bucket.id}
-                      className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold text-slate-900">
-                              {bucket.name}
-                            </span>
-                            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-slate-200 text-slate-700">
-                              {bucketPOICount}
-                            </span>
+                    return (
+                      <div
+                        key={bucket.id}
+                        className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-bold text-slate-900">
+                                {bucket.name}
+                              </span>
+                              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-slate-200 text-slate-700">
+                                {bucketPOICount}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-500">{bucket.desc}</p>
                           </div>
-                          <p className="text-[11px] text-slate-500">{bucket.desc}</p>
+
+                          <button
+                            type="button"
+                            onClick={handleToggleBucket}
+                            className={`shrink-0 px-2 py-0.5 rounded-lg text-[10px] font-semibold border transition-all ${
+                              isAllActive
+                                ? 'bg-slate-900 text-white border-slate-900'
+                                : isAnyActive
+                                ? 'bg-blue-100 text-blue-800 border-blue-300'
+                                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            {isAllActive
+                              ? 'Đang bật cả nhóm'
+                              : isAnyActive
+                              ? 'Bật một phần'
+                              : 'Bật nhóm'}
+                          </button>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={handleToggleBucket}
-                          className={`shrink-0 px-2 py-0.5 rounded-lg text-[10px] font-semibold border transition-all ${
-                            isAllActive
-                              ? 'bg-slate-900 text-white border-slate-900'
-                              : isAnyActive
-                              ? 'bg-blue-100 text-blue-800 border-blue-300'
-                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
-                          }`}
-                        >
-                          {isAllActive
-                            ? 'Đang bật cả nhóm'
-                            : isAnyActive
-                            ? 'Bật một phần'
-                            : 'Bật nhóm'}
-                        </button>
+                        {/* Sub-chips for each category inside bucket */}
+                        <div className="flex flex-wrap gap-1.5 pt-0.5">
+                          {bucket.categories.map((cat) => {
+                            const meta = POI_CATEGORY_META[cat];
+                            const isEnabled = activePOICategories.includes(cat);
+                            const count = categoryCounts[cat] || 0;
+                            return (
+                              <button
+                                key={cat}
+                                type="button"
+                                onClick={() => togglePOICategory(cat)}
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-medium border transition-all ${
+                                  isEnabled
+                                    ? 'bg-white text-slate-900 border-slate-400 font-semibold shadow-2xs'
+                                    : 'bg-slate-100/80 text-slate-400 border-slate-200 hover:bg-slate-200/60'
+                                }`}
+                              >
+                                <span
+                                  className="w-1.5 h-1.5 rounded-full shrink-0"
+                                  style={{ backgroundColor: meta.bgHex }}
+                                />
+                                <span>{meta.shortLabel}</span>
+                                <span className="text-[10px] opacity-75 font-normal">
+                                  ({count})
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-
-                      {/* Sub-chips for each category inside bucket */}
-                      <div className="flex flex-wrap gap-1.5 pt-0.5">
-                        {bucket.categories.map((cat) => {
-                          const meta = POI_CATEGORY_META[cat];
-                          const isEnabled = activePOICategories.includes(cat);
-                          const count = categoryCounts[cat] || 0;
-                          return (
-                            <button
-                              key={cat}
-                              type="button"
-                              onClick={() => togglePOICategory(cat)}
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-medium border transition-all ${
-                                isEnabled
-                                  ? 'bg-white text-slate-900 border-slate-400 font-semibold shadow-2xs'
-                                  : 'bg-slate-100/80 text-slate-400 border-slate-200 hover:bg-slate-200/60'
-                              }`}
-                            >
-                              <span
-                                className="w-1.5 h-1.5 rounded-full shrink-0"
-                                style={{ backgroundColor: meta.bgHex }}
-                              />
-                              <span>{meta.shortLabel}</span>
-                              <span className="text-[10px] opacity-75 font-normal">
-                                ({count})
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
-            {/* POI List & Route Actions */}
+            {/* POI List & Route Actions (Progressive Disclosure) */}
             <div className="space-y-2.5">
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-slate-900">
-                  Địa điểm tiện ích lân cận ({filteredPOIs.length})
+                  Địa điểm tiện ích ({displayedPOIs.length}/{filteredPOIs.length})
                 </span>
                 {activeRoutes.length > 0 && (
                   <button
                     type="button"
                     onClick={handleClearRoutes}
-                    className="inline-flex items-center gap-1 text-xs text-rose-600 hover:text-rose-700 font-bold"
+                    className="inline-flex items-center gap-1 text-[11px] text-rose-600 hover:text-rose-700 font-bold"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Xoá {activeRoutes.length} tuyến</span>
@@ -753,7 +834,7 @@ export function LocationIntelView() {
                 )}
               </div>
 
-              {filteredPOIs.map((poi) => {
+              {displayedPOIs.map((poi) => {
                 const meta = POI_CATEGORY_META[poi.category];
                 const isSelected = selectedPOIIds.includes(poi.id);
                 const route = routeMap.get(poi.id);
@@ -847,6 +928,26 @@ export function LocationIntelView() {
                   </div>
                 );
               })}
+
+              {/* Toggle to expand/collapse full POI list */}
+              {filteredPOIs.length > 2 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllPOIs(!showAllPOIs)}
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-blue-600 transition shadow-2xs"
+                >
+                  <span>
+                    {showAllPOIs
+                      ? 'Thu gọn danh sách tiện ích'
+                      : `Xem thêm ${filteredPOIs.length - displayedPOIs.length} địa điểm khác (Tổng ${filteredPOIs.length} điểm)`}
+                  </span>
+                  {showAllPOIs ? (
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  )}
+                </button>
+              )}
             </div>
           </div>
         )}

@@ -815,41 +815,61 @@ export function InteractiveMap({
             })()
           : '';
 
+        const isHighlight = isSelectedPOI || !!activeRoute;
+
         const poiEl = document.createElement('div');
         poiEl.className = 'cursor-pointer group select-none';
         poiEl.style.zIndex = isSelectedPOI ? '35' : activeRoute ? '25' : '15';
 
-        poiEl.innerHTML = `
-          <div class="relative flex flex-col items-center transition-all duration-150 ${
-            isSelectedPOI ? 'scale-110' : 'hover:scale-105'
-          }">
-            <div
-              class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold transition-all ${
-                isSelectedPOI
-                  ? 'bg-slate-900 text-white border-slate-900 ring-2 ring-blue-500 shadow-xl'
-                  : activeRoute
-                  ? 'bg-white text-slate-900 border-blue-300 ring-2 ring-blue-100 shadow-md'
-                  : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300 shadow-sm'
-              }"
-            >
-              <span
-                class="w-2 h-2 rounded-full shrink-0"
-                style="background-color: ${meta.bgHex};"
-              ></span>
-              <span class="max-w-[130px] truncate text-[11px] font-medium">${poi.name}</span>
-              ${routeTag}
+        if (isHighlight) {
+          poiEl.innerHTML = `
+            <div class="relative flex flex-col items-center transition-all duration-150 ${
+              isSelectedPOI ? 'scale-110' : 'hover:scale-105'
+            }">
+              <div
+                class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold transition-all ${
+                  isSelectedPOI
+                    ? 'bg-slate-900 text-white border-slate-900 ring-2 ring-blue-500 shadow-xl'
+                    : 'bg-white text-slate-900 border-blue-400 ring-2 ring-blue-100 shadow-md'
+                }"
+              >
+                <span
+                  class="w-2 h-2 rounded-full shrink-0"
+                  style="background-color: ${meta.bgHex};"
+                ></span>
+                <span class="max-w-[130px] truncate text-[11px] font-medium">${poi.name}</span>
+                ${routeTag}
+              </div>
+              <div
+                class="w-2 h-2 rotate-45 -mt-1 border-r border-b ${
+                  isSelectedPOI
+                    ? 'bg-slate-900 border-slate-900'
+                    : 'bg-white border-blue-400'
+                }"
+              ></div>
             </div>
-            <div
-              class="w-2 h-2 rotate-45 -mt-1 border-r border-b ${
-                isSelectedPOI
-                  ? 'bg-slate-900 border-slate-900'
-                  : activeRoute
-                  ? 'bg-white border-blue-300'
-                  : 'bg-white border-slate-200'
-              }"
-            ></div>
-          </div>
-        `;
+          `;
+        } else {
+          // Minimal Dot Marker - Clean, unobtrusive, uncluttered, lets user see the 3D map & urban context
+          poiEl.innerHTML = `
+            <div class="relative flex flex-col items-center group">
+              <div
+                class="flex items-center justify-center w-5 h-5 rounded-full border-2 border-white shadow-md transition-all duration-150 group-hover:scale-125"
+                style="background-color: ${meta.bgHex};"
+              >
+                <span class="text-[8px] font-extrabold text-white leading-none">${meta.badgeSymbol}</span>
+              </div>
+              <!-- Tooltip on hover -->
+              <div class="absolute bottom-full mb-1 hidden group-hover:flex flex-col items-center pointer-events-none z-50">
+                <div class="px-2 py-0.5 rounded-md bg-slate-900/95 text-white text-[10px] font-semibold whitespace-nowrap shadow-lg">
+                  ${poi.name}
+                  <span class="opacity-70 ml-1 font-normal text-[9px]">(${meta.shortLabel})</span>
+                </div>
+                <div class="w-1.5 h-1.5 rotate-45 -mt-0.5 bg-slate-900/95"></div>
+              </div>
+            </div>
+          `;
+        }
 
         poiEl.addEventListener('click', (e) => {
           e.stopPropagation();

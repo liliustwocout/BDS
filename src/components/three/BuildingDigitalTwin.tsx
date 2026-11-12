@@ -28,6 +28,7 @@ export interface BuildingDigitalTwinProps {
   editable?: boolean;
   resetTrigger?: number;
   className?: string;
+  showLabels?: boolean;
 }
 
 const DEFAULT_STYLE_PALETTE = {
@@ -643,6 +644,8 @@ function Room3DMesh({
   buildingDepth,
   isSelected,
   showDimensions,
+  showLabels = true,
+  selectedFloor = 'all',
   wallOpacity,
   stylePalette,
   onSelectRoom,
@@ -653,6 +656,8 @@ function Room3DMesh({
   buildingDepth: number;
   isSelected: boolean;
   showDimensions: boolean;
+  showLabels?: boolean;
+  selectedFloor?: number | 'all';
   wallOpacity: number;
   stylePalette: typeof DEFAULT_STYLE_PALETTE;
   onSelectRoom: (id: string | null) => void;
@@ -876,36 +881,38 @@ function Room3DMesh({
         </group>
       )}
 
-      {/* Floating Room Label (Html from @react-three/drei) */}
-      <Html
-        position={[0, isSelected ? rh * 0.55 : 0.45, 0]}
-        center
-        distanceFactor={18}
-        zIndexRange={[10, 0]}
-      >
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelectRoom(isSelected ? null : room.id);
-          }}
-          className={`cursor-pointer select-none rounded-lg border px-2.5 py-1 text-center shadow-sm backdrop-blur-sm transition-all ${
-            isSelected
-              ? 'border-blue-600 bg-blue-600 text-white shadow-md ring-2 ring-blue-400/40 scale-105'
-              : 'border-slate-200 bg-white/95 text-slate-800 hover:border-blue-500 hover:shadow-md'
-          }`}
+      {/* Contextual Floating Room Label (Html from @react-three/drei) */}
+      {showLabels && (selectedFloor !== 'all' || isSelected || hovered) && (
+        <Html
+          position={[0, isSelected ? rh * 0.55 : 0.45, 0]}
+          center
+          distanceFactor={20}
+          zIndexRange={[10, 0]}
         >
-          <div className="text-[10px] font-semibold leading-tight whitespace-nowrap">
-            {room.name.length > 22 ? `${room.name.slice(0, 20)}…` : room.name}
-          </div>
           <div
-            className={`text-[9px] font-mono ${
-              isSelected ? 'text-blue-100' : 'text-slate-500'
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectRoom(isSelected ? null : room.id);
+            }}
+            className={`cursor-pointer select-none rounded-md px-2.5 py-1 text-center backdrop-blur-md transition-all shadow-sm ${
+              isSelected
+                ? 'border border-blue-600 bg-blue-600 text-white shadow-md ring-2 ring-blue-400/40 scale-105'
+                : 'border border-slate-200/90 bg-white/90 text-slate-800 hover:border-blue-500 hover:bg-white hover:shadow'
             }`}
           >
-            {room.area}m² {showDimensions ? `(${room.width}×${room.depth}m)` : ''}
+            <div className="text-[11px] font-semibold leading-tight whitespace-nowrap">
+              {room.name.length > 20 ? `${room.name.slice(0, 18)}…` : room.name}
+            </div>
+            <div
+              className={`text-[10px] font-mono leading-none mt-0.5 ${
+                isSelected ? 'text-blue-100' : 'text-slate-500'
+              }`}
+            >
+              {room.area}m²
+            </div>
           </div>
-        </div>
-      </Html>
+        </Html>
+      )}
     </group>
   );
 }
@@ -919,11 +926,13 @@ function UrbanStreetContext({
   weatherMode,
   lightsActive,
   showDimensions,
+  showLabels = true,
 }: {
   property: PropertyItem;
   weatherMode: WeatherMode;
   lightsActive: boolean;
   showDimensions: boolean;
+  showLabels?: boolean;
 }) {
   const W = property.buildingWidth;
   const D = property.buildingDepth;
@@ -1055,15 +1064,17 @@ function UrbanStreetContext({
           <ringGeometry args={[1.1, 1.35, 32]} />
           <meshBasicMaterial color="#0284c7" side={THREE.DoubleSide} />
         </mesh>
-        <Html position={[0, 0.25, 0]} center distanceFactor={20}>
-          <div className="pointer-events-none rounded-md border border-slate-200 bg-white/95 px-2.5 py-1 text-[10px] font-sans font-medium text-slate-800 shadow-sm whitespace-nowrap">
-            Hướng {property.orientationLabel} ({property.orientationAzimuth}°)
-          </div>
-        </Html>
+        {showLabels && (
+          <Html position={[0, 0.25, 0]} center distanceFactor={20}>
+            <div className="pointer-events-none rounded-md border border-slate-200 bg-white/95 px-2.5 py-1 text-[10px] font-sans font-medium text-slate-800 shadow-sm whitespace-nowrap">
+              Hướng {property.orientationLabel} ({property.orientationAzimuth}°)
+            </div>
+          </Html>
+        )}
       </group>
 
       {/* Overall Building Footprint Dimension Lines on Ground */}
-      {showDimensions && (
+      {showDimensions && showLabels && (
         <group position={[0, 0.08, 0]}>
           {/* Frontage Width Line */}
           <Line
@@ -1191,6 +1202,7 @@ export function BuildingDigitalTwin({
   showSolarArc = false,
   resetTrigger = 0,
   className = '',
+  showLabels: propShowLabels,
 }: BuildingDigitalTwinProps) {
   const {
     properties,
@@ -1200,6 +1212,7 @@ export function BuildingDigitalTwin({
     cameraMode,
     showFurniture,
     showDimensions,
+    showLabels: storeShowLabels,
     timeOfDayHours,
     dayOfYear,
     weatherMode,
@@ -1216,6 +1229,9 @@ export function BuildingDigitalTwin({
     () => propProperty || properties.find((p) => p.id === selectedPropertyId) || properties[0],
     [propProperty, properties, selectedPropertyId]
   );
+
+  const effectiveShowLabels =
+    propShowLabels !== undefined ? propShowLabels : (storeShowLabels ?? true);
 
   const stylePalette = useMemo(
     () =>
@@ -1372,6 +1388,7 @@ export function BuildingDigitalTwin({
           weatherMode={weatherMode}
           lightsActive={lightsActive}
           showDimensions={showDimensions}
+          showLabels={effectiveShowLabels}
         />
 
         {/* MULTI-FLOOR PROCEDURAL DIGITAL TWIN BUILDING */}
@@ -1433,6 +1450,8 @@ export function BuildingDigitalTwin({
                     buildingDepth={D}
                     isSelected={selectedRoomId === room.id}
                     showDimensions={showDimensions}
+                    showLabels={effectiveShowLabels}
+                    selectedFloor={selectedFloor}
                     wallOpacity={wallOpacity}
                     stylePalette={stylePalette}
                     onSelectRoom={setSelectedRoomId}

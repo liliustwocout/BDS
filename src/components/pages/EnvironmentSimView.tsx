@@ -101,7 +101,7 @@ export function EnvironmentSimView() {
   } = useSpaceVisionStore();
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [panelOpen, setPanelOpen] = useState(true);
+  const [panelOpen, setPanelOpen] = useState(false);
 
   const property = useMemo(
     () => properties.find((p) => p.id === selectedPropertyId) || properties[0],
@@ -303,14 +303,25 @@ export function EnvironmentSimView() {
             </button>
 
             <button
+              id="tour-env-open-panel"
               onClick={() => setPanelOpen(!panelOpen)}
-              className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-              title={panelOpen ? 'Thu gọn bảng phân tích' : 'Mở bảng phân tích'}
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all ${
+                panelOpen
+                  ? 'text-slate-600 hover:bg-slate-100'
+                  : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200/80 shadow-2xs'
+              }`}
+              title={panelOpen ? 'Thu gọn bảng phân tích' : 'Mở bảng chi tiết chiếu sáng & vi khí hậu'}
             >
               {panelOpen ? (
-                <PanelRightClose className="h-4 w-4" />
+                <>
+                  <PanelRightClose className="h-4 w-4" />
+                  <span className="hidden sm:inline">Thu gọn</span>
+                </>
               ) : (
-                <PanelRightOpen className="h-4 w-4" />
+                <>
+                  <PanelRightOpen className="h-4 w-4 text-blue-600" />
+                  <span>Chi tiết chiếu sáng</span>
+                </>
               )}
             </button>
           </div>
@@ -441,7 +452,7 @@ export function EnvironmentSimView() {
                 <button
                   type="button"
                   onClick={() => setPanelOpen(false)}
-                  className="rounded p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 sm:hidden"
+                  className="rounded p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                   title="Đóng bảng"
                 >
                   <PanelRightClose className="h-4 w-4" />
