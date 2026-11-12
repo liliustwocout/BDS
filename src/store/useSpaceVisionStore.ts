@@ -80,6 +80,11 @@ export interface SpaceVisionState {
   map3DBuildings: boolean;
   mapPitch: number;
 
+  // Onboarding & Help Guide
+  showOnboardingGuide: boolean;
+  openOnboardingGuide: () => void;
+  closeOnboardingGuide: () => void;
+
   // Actions
   setActiveTab: (tab: ActiveTab) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
@@ -158,6 +163,11 @@ export const useSpaceVisionStore = create<SpaceVisionState>((set, get) => ({
   // 3D Map defaults
   map3DBuildings: true,
   mapPitch: 50,
+
+  // Onboarding & Help Guide
+  showOnboardingGuide: false,
+  openOnboardingGuide: () => set({ showOnboardingGuide: true }),
+  closeOnboardingGuide: () => set({ showOnboardingGuide: false }),
 
   setActiveTab: (tab) => set({ activeTab: tab }),
 

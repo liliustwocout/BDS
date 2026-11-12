@@ -8,10 +8,12 @@ import {
   Check,
   Building2,
   Compass,
+  HelpCircle,
 } from 'lucide-react';
 import { ActiveTab } from '@/types';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { TopNav, NAV_TABS } from '@/components/layout/TopNav';
+import { OnboardingGuideModal } from '@/components/common/OnboardingGuideModal';
 import LandingPageView from '@/components/pages/LandingPageView';
 import DiscoveryView from '@/components/pages/DiscoveryView';
 import LocationIntelView from '@/components/pages/LocationIntelView';
@@ -38,7 +40,21 @@ export default function SpaceVisionAppPage() {
     selectedPropertyId,
     comparedPropertyIds,
     toggleCompareProperty,
+    openOnboardingGuide,
   } = useSpaceVisionStore();
+
+  // First-time visitor onboarding welcome check
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isDismissed = localStorage.getItem('spacevision_onboarding_dismissed');
+      if (!isDismissed) {
+        const timer = setTimeout(() => {
+          openOnboardingGuide();
+        }, 600);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [openOnboardingGuide]);
 
   // Keyboard shortcuts: Alt+0 .. Alt+6
   useEffect(() => {
@@ -97,6 +113,9 @@ export default function SpaceVisionAppPage() {
         {activeTab === 'comparison' && <ComparisonReportView />}
       </main>
 
+      {/* Interactive Step-by-Step Onboarding Walkthrough & Help Modal */}
+      <OnboardingGuideModal />
+
       {/* Bottom Contextual Workflow Bar (Active when exploring tools beyond landing) */}
       {activeTab !== 'landing' && (
         <footer className="no-print sticky bottom-0 z-30 h-11 w-full border-t border-slate-200 bg-white/95 px-3 lg:px-5 backdrop-blur-md shadow-[0_-1px_3px_0_rgba(0,0,0,0.03)]">
@@ -152,6 +171,16 @@ export default function SpaceVisionAppPage() {
               )}
 
               <div className="flex items-center gap-1.5">
+                {/* Quick Help Guide Button */}
+                <button
+                  onClick={() => openOnboardingGuide()}
+                  className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition"
+                  title="Mở hướng dẫn sử dụng từng bước"
+                >
+                  <HelpCircle className="h-3.5 w-3.5 text-slate-600" />
+                  <span className="hidden md:inline">Hướng dẫn</span>
+                </button>
+
                 {prevTab && (
                   <button
                     onClick={() => setActiveTab(prevTab.id)}

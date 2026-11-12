@@ -19,6 +19,7 @@ import {
   MessageSquare,
   DollarSign,
   UserCheck,
+  HelpCircle,
 } from 'lucide-react';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { BusinessType, PropertyItem } from '@/types';
@@ -177,6 +178,7 @@ export const LandingPageView: React.FC = () => {
     searchFromLanding,
     exploreProperty3D,
     viewPropertyOnMap,
+    openOnboardingGuide,
   } = useSpaceVisionStore();
 
   const [searchInput, setSearchInput] = useState('');
@@ -238,12 +240,20 @@ export const LandingPageView: React.FC = () => {
         <div className="absolute inset-0 bg-dot-grid opacity-35 pointer-events-none" />
 
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          {/* Top Architectural Badge */}
-          <div className="mb-4 flex items-center justify-center">
+          {/* Top Architectural Badge & Help Guide Trigger */}
+          <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-slate-100/90 px-3.5 py-1 text-xs font-semibold text-slate-800 shadow-sm">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Hệ thống Khảo sát & Tối ưu Không gian Thương mại Hà Nội</span>
             </div>
+            <button
+              onClick={() => openOnboardingGuide()}
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-100 hover:text-slate-900 transition"
+              title="Xem hướng dẫn sử dụng từng bước"
+            >
+              <HelpCircle className="h-3.5 w-3.5 text-slate-600" />
+              <span>Hướng dẫn sử dụng</span>
+            </button>
           </div>
 
           {/* Main Headline */}
@@ -376,6 +386,15 @@ export const LandingPageView: React.FC = () => {
                 className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-700 hover:bg-slate-200 hover:text-slate-900 transition"
               >
                 Showroom Hoàn Kiếm
+              </button>
+
+              <button
+                type="button"
+                onClick={() => openOnboardingGuide()}
+                className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-slate-900 transition underline underline-offset-2 decoration-slate-300"
+              >
+                <HelpCircle className="h-3 w-3 text-slate-500" />
+                <span>Xem hướng dẫn 1 phút</span>
               </button>
             </div>
           </div>

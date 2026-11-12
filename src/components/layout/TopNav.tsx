@@ -20,6 +20,7 @@ import {
   Layers,
   Search,
   Menu,
+  HelpCircle,
 } from 'lucide-react';
 import { ActiveTab, BusinessType } from '@/types';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
@@ -111,6 +112,7 @@ export const TopNav: React.FC = () => {
     comparedPropertyIds,
     selectedBusinessType,
     setSelectedBusinessType,
+    openOnboardingGuide,
   } = useSpaceVisionStore();
 
   const [propertyDropdownOpen, setPropertyDropdownOpen] = useState(false);
@@ -375,14 +377,24 @@ export const TopNav: React.FC = () => {
               )}
             </div>
 
+            {/* Interactive Onboarding Guide & Help Trigger */}
+            <button
+              onClick={() => openOnboardingGuide()}
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
+              title="Xem hướng dẫn sử dụng từng bước (Dành cho người mới)"
+            >
+              <HelpCircle className="h-4 w-4 text-slate-600" />
+              <span className="hidden sm:inline">Hướng dẫn</span>
+            </button>
+
             {/* Data Provenance Legend Trigger */}
             <button
               onClick={() => setProvenanceOpen(true)}
-              className="hidden sm:flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
+              className="hidden md:flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
               title="Xem chú giải Minh bạch Nguồn Dữ liệu"
             >
               <ShieldCheck className="h-4 w-4 text-slate-600" />
-              <span className="hidden md:inline">Nguồn dữ liệu</span>
+              <span>Nguồn dữ liệu</span>
             </button>
 
             {/* Mobile / Tablet Menu Button */}
@@ -437,6 +449,29 @@ export const TopNav: React.FC = () => {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="pt-2.5 mt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  openOnboardingGuide();
+                }}
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-100"
+              >
+                <HelpCircle className="h-4 w-4 text-slate-600" />
+                <span>Xem hướng dẫn sử dụng</span>
+              </button>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setProvenanceOpen(true);
+                }}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                <ShieldCheck className="h-4 w-4 text-slate-600" />
+                <span>Nguồn DL</span>
+              </button>
             </div>
           </div>
         )}
