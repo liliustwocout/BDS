@@ -573,8 +573,12 @@ export const LandingPageView: React.FC = () => {
 
                 {/* Handover incentive or Highlights */}
                 {prop.contact.handoverOffer ? (
-                  <div className="mb-3.5 rounded-lg bg-amber-50/80 border border-amber-200/70 px-3 py-1.5 text-xs sm:text-sm font-medium text-amber-900 line-clamp-1">
-                    <span className="font-bold text-amber-950">Ưu đãi:</span> {prop.contact.handoverOffer}
+                  <div className="mb-3.5 flex items-start gap-2 rounded-lg bg-amber-50/90 border border-amber-200/80 p-2.5 text-xs sm:text-sm text-amber-950 leading-snug">
+                    <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-extrabold text-amber-950 mr-1.5">Ưu đãi:</span>
+                      <span className="font-medium text-amber-900">{prop.contact.handoverOffer}</span>
+                    </div>
                   </div>
                 ) : (
                   <div className="mb-3.5 flex flex-wrap gap-1.5">
