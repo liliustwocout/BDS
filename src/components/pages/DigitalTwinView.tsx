@@ -30,6 +30,7 @@ import { CameraMode, RoomGeometry, FloorSpec } from '@/types';
 import { BUSINESS_TYPE_META, DESIGN_STYLE_META } from '@/lib/aiEngine';
 import { BuildingDigitalTwin } from '@/components/three/BuildingDigitalTwin';
 import { FloorPlan2D } from '@/components/three/FloorPlan2D';
+import { UrbanSimulation3D } from '@/components/three/UrbanSimulation3D';
 
 const CAMERA_MODES: {
   id: CameraMode;
@@ -202,121 +203,137 @@ export function DigitalTwinView() {
         {/* TOP FLOATING ARCHITECTURAL TOOLBAR (Single Compact Capsule) */}
         <div className="pointer-events-none absolute top-3 left-0 right-0 z-20 flex justify-center px-3">
           <div className="pointer-events-auto flex items-center gap-1.5 p-1 rounded-2xl border border-slate-200/90 bg-white/95 shadow-md backdrop-blur-md overflow-x-auto no-scrollbar">
-            {/* 3 Core Camera Modes */}
+            {/* View Mode Switcher (Đô thị 3D / 3D Dollhouse / 2D / Split) */}
             <div className="flex items-center gap-1">
-              {CAMERA_MODES.map((mode) => {
-                const Icon = mode.icon;
-                const active = cameraMode === mode.id;
-                return (
-                  <button
-                    key={mode.id}
-                    onClick={() => setCameraMode(mode.id)}
-                    title={mode.desc}
-                    className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
-                      active
-                        ? 'bg-slate-900 text-white font-semibold shadow-xs'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                    }`}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">{mode.label}</span>
-                    <span className="sm:hidden">{mode.shortLabel}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Subtle Divider */}
-            <div className="h-4 w-px bg-slate-200 mx-0.5" />
-
-            {/* View Mode Switcher (3D Twin / 2D Blueprint / Split) */}
-            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setView2D3DMode('urban')}
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
+                  view2D3DMode === 'urban'
+                    ? 'bg-blue-600 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+                title="Mô phỏng đô thị 3D, xe cộ, người đi lại, trường học và đối thủ"
+              >
+                <Building2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Đô thị 3D (Mô phỏng)</span>
+                <span className="sm:hidden">Đô thị 3D</span>
+              </button>
               <button
                 onClick={() => setView2D3DMode('3d')}
                 className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
                   view2D3DMode === '3d'
-                    ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                    ? 'bg-blue-600 text-white font-bold shadow-xs'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`}
+                title="Mô hình 3D bóc tách tầng (Dollhouse)"
               >
                 <Box className="h-3.5 w-3.5" />
-                <span>3D</span>
+                <span>Nội thất 3D</span>
               </button>
               <button
                 onClick={() => setView2D3DMode('2d')}
                 className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
                   view2D3DMode === '2d'
-                    ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                    ? 'bg-blue-600 text-white font-bold shadow-xs'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`}
+                title="Bản vẽ kỹ thuật 2D CAD"
               >
                 <Maximize2 className="h-3.5 w-3.5" />
-                <span>2D</span>
+                <span>Mặt bằng 2D</span>
               </button>
               <button
                 onClick={() => setView2D3DMode('split')}
                 className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
                   view2D3DMode === 'split'
-                    ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                    ? 'bg-blue-600 text-white font-bold shadow-xs'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`}
+                title="Chia đôi màn hình 3D và 2D"
               >
                 <Columns className="h-3.5 w-3.5" />
                 <span className="hidden md:inline">Chia đôi</span>
               </button>
             </div>
 
-            {/* Subtle Divider */}
-            <div className="h-4 w-px bg-slate-200 mx-0.5" />
+            {/* Camera angle and floorplan controls (Shown when in 3D / 2D modes) */}
+            {view2D3DMode !== 'urban' && (
+              <>
+                <div className="h-4 w-px bg-slate-200 mx-0.5" />
+                <div className="flex items-center gap-1">
+                  {CAMERA_MODES.map((mode) => {
+                    const Icon = mode.icon;
+                    const active = cameraMode === mode.id;
+                    return (
+                      <button
+                        key={mode.id}
+                        onClick={() => setCameraMode(mode.id)}
+                        title={mode.desc}
+                        className={`flex items-center gap-1.5 rounded-xl px-2 py-1.5 text-xs font-medium transition-all ${
+                          active
+                            ? 'bg-slate-900 text-white font-semibold shadow-xs'
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                        }`}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">{mode.shortLabel}</span>
+                      </button>
+                    );
+                  })}
+                </div>
 
-            {/* Feature Toggles & Reset Camera */}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setShowFurniture(!showFurniture)}
-                className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
-                  showFurniture
-                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-                title="Bật/tắt hiển thị nội thất"
-              >
-                <Armchair className="h-3.5 w-3.5 text-slate-700" />
-                <span className="hidden lg:inline">Nội thất</span>
-              </button>
+                <div className="h-4 w-px bg-slate-200 mx-0.5" />
 
-              <button
-                onClick={() => setShowDimensions(!showDimensions)}
-                className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
-                  showDimensions
-                    ? 'bg-blue-50 text-blue-800 border border-blue-200'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-                title="Bật/tắt đường gióng kích thước (m)"
-              >
-                <Ruler className="h-3.5 w-3.5 text-slate-700" />
-                <span className="hidden lg:inline">Kích thước</span>
-              </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setShowFurniture(!showFurniture)}
+                    className={`flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium transition-all ${
+                      showFurniture
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                    title="Bật/tắt hiển thị nội thất"
+                  >
+                    <Armchair className="h-3.5 w-3.5 text-slate-700" />
+                    <span className="hidden lg:inline">Nội thất</span>
+                  </button>
 
-              <button
-                onClick={handleResetCamera}
-                className="flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all"
-                title="Đặt lại góc nhìn camera"
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Reset</span>
-              </button>
-            </div>
+                  <button
+                    onClick={() => setShowDimensions(!showDimensions)}
+                    className={`flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium transition-all ${
+                      showDimensions
+                        ? 'bg-blue-50 text-blue-800 border border-blue-200'
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                    title="Bật/tắt đường gióng kích thước (m)"
+                  >
+                    <Ruler className="h-3.5 w-3.5 text-slate-700" />
+                    <span className="hidden lg:inline">Kích thước</span>
+                  </button>
+
+                  <button
+                    onClick={handleResetCamera}
+                    className="flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all"
+                    title="Đặt lại góc nhìn camera"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Reset</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
-        {/* FLOATING BOTTOM BAR: FLOOR SELECTOR DOCK & LANDLORD CONTACT */}
-        <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-3">
-          {/* Horizontal Floor Selector: "Toàn bộ toà nhà", "Tầng 1", "Tầng 2", "Tầng 3" */}
-          <div className="pointer-events-auto flex items-center gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-md backdrop-blur-md">
-            <button
-              onClick={() => setSelectedFloor('all')}
-              className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold transition-all ${
-                selectedFloor === 'all'
+        {/* FLOATING BOTTOM BAR: FLOOR SELECTOR DOCK & LANDLORD CONTACT (Only in 3D/2D views) */}
+        {view2D3DMode !== 'urban' && (
+          <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-3">
+            {/* Horizontal Floor Selector: "Toàn bộ toà nhà", "Tầng 1", "Tầng 2", "Tầng 3" */}
+            <div className="pointer-events-auto flex items-center gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-md backdrop-blur-md">
+              <button
+                onClick={() => setSelectedFloor('all')}
+                className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold transition-all ${
+                  selectedFloor === 'all'
                   ? 'bg-slate-900 text-white shadow-sm'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
@@ -379,9 +396,16 @@ export function DigitalTwinView() {
             </div>
           )}
         </div>
+      )}
 
         {/* 3D / 2D VIEWPORT AREA */}
         <div className="relative flex-1 w-full h-full flex overflow-hidden">
+          {view2D3DMode === 'urban' && (
+            <div className="relative w-full h-full">
+              <UrbanSimulation3D property={property} />
+            </div>
+          )}
+
           {view2D3DMode === '3d' && (
             <div className="relative w-full h-full">
               <BuildingDigitalTwin

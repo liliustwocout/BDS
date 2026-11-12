@@ -62,7 +62,7 @@ export const NAV_TABS: NavTabConfig[] = [
     shortLabel: 'Bản đồ 3D',
     shortcut: 'Alt+2',
     icon: MapPin,
-    description: 'Bản đồ toà nhà 3D, tiện ích xung quanh & định tuyến thực tế OSRM',
+    description: 'Mô phỏng đô thị 3D (xe cộ, người đi lại), đối thủ, trường học & bản đồ tiện ích',
   },
   {
     id: 'twin',
@@ -71,7 +71,7 @@ export const NAV_TABS: NavTabConfig[] = [
     shortLabel: '3D Twin',
     shortcut: 'Alt+3',
     icon: Box,
-    description: 'Digital Twin 3D tương tác, mặt bằng 2D & thông số kỹ thuật',
+    description: 'Toàn cảnh Đô thị 3D mô phỏng, Digital Twin bóc tách tầng & mặt bằng 2D',
   },
   {
     id: 'environment',
