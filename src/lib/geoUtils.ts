@@ -304,3 +304,150 @@ export function calculateBearingDegrees(
   const bearing = (theta * 180) / Math.PI;
   return (bearing + 360) % 360;
 }
+
+/**
+ * Calculates the shortest signed angular difference between two bearings in [-180, 180] degrees.
+ */
+export function shortestAngleDiff(fromDeg: number, toDeg: number): number {
+  return ((toDeg - fromDeg + 540) % 360) - 180;
+}
+
+/**
+ * Smoothly interpolates an angle towards a target angle via the shortest path.
+ */
+export function smoothAngle(currentDeg: number, targetDeg: number, smoothingFactor: number): number {
+  const diff = shortestAngleDiff(currentDeg, targetDeg);
+  const factor = Math.max(0, Math.min(1, smoothingFactor));
+  return (currentDeg + diff * factor + 360) % 360;
+}
+
+/**
+ * Standard cubic ease in-out for silky camera acceleration and deceleration.
+ */
+export function easeInOutCubic(t: number): number {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+/**
+ * Fillets sharp corners of a polyline with smooth quadratic bezier curves
+ * so camera flight paths have C1 continuity without abrupt vertex pivots.
+ */
+export function smoothRouteGeometry(
+  rawPoints: [number, number][],
+  maxFilletRadiusMeters = 8
+): [number, number][] {
+  if (rawPoints.length < 3) return [...rawPoints];
+
+  const result: [number, number][] = [rawPoints[0]];
+
+  for (let i = 1; i < rawPoints.length - 1; i++) {
+    const pPrev = rawPoints[i - 1];
+    const pCurr = rawPoints[i];
+    const pNext = rawPoints[i + 1];
+
+    const d1 = calculateHaversineMeters(pPrev, pCurr);
+    const d2 = calculateHaversineMeters(pCurr, pNext);
+
+    const filletRadius = Math.min(maxFilletRadiusMeters, d1 * 0.42, d2 * 0.42);
+
+    const b1 = calculateBearingDegrees(pPrev, pCurr);
+    const b2 = calculateBearingDegrees(pCurr, pNext);
+    const turnAngle = Math.abs(shortestAngleDiff(b1, b2));
+
+    // Only fillet if there is a noticeable turn (>= 12 deg) and enough distance
+    if (turnAngle >= 12 && filletRadius >= 1.5) {
+      const f1 = filletRadius / Math.max(1, d1);
+      const f2 = filletRadius / Math.max(1, d2);
+
+      const pEntry: [number, number] = [
+        pCurr[0] + (pPrev[0] - pCurr[0]) * f1,
+        pCurr[1] + (pPrev[1] - pCurr[1]) * f1,
+      ];
+      const pExit: [number, number] = [
+        pCurr[0] + (pNext[0] - pCurr[0]) * f2,
+        pCurr[1] + (pNext[1] - pCurr[1]) * f2,
+      ];
+
+      result.push(pEntry);
+
+      // Generate 4 intermediate bezier points across the corner
+      const steps = [0.25, 0.5, 0.75];
+      for (const u of steps) {
+        const oneMinusU = 1 - u;
+        const bx =
+          oneMinusU * oneMinusU * pEntry[0] +
+          2 * oneMinusU * u * pCurr[0] +
+          u * u * pExit[0];
+        const by =
+          oneMinusU * oneMinusU * pEntry[1] +
+          2 * oneMinusU * u * pCurr[1] +
+          u * u * pExit[1];
+        result.push([Number(bx.toFixed(6)), Number(by.toFixed(6))]);
+      }
+
+      result.push(pExit);
+    } else {
+      result.push(pCurr);
+    }
+  }
+
+  result.push(rawPoints[rawPoints.length - 1]);
+  return result;
+}
+
+/**
+ * Precomputes cumulative distances along a polyline.
+ */
+export function buildCumulativeDistances(points: [number, number][]): {
+  totalDistance: number;
+  cumDistances: number[];
+} {
+  const cumDistances: number[] = [0];
+  let totalDistance = 0;
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const d = calculateHaversineMeters(points[i], points[i + 1]);
+    totalDistance += d;
+    cumDistances.push(totalDistance);
+  }
+
+  return { totalDistance, cumDistances };
+}
+
+/**
+ * Samples a continuous [lng, lat] coordinate along a polyline at target distance.
+ */
+export function samplePointAtDistance(
+  points: [number, number][],
+  cumDistances: number[],
+  targetDist: number
+): [number, number] {
+  if (points.length === 0) return [0, 0];
+  if (points.length === 1 || targetDist <= 0) return points[0];
+
+  const total = cumDistances[cumDistances.length - 1];
+  if (targetDist >= total) return points[points.length - 1];
+
+  let segIdx = 0;
+  for (let i = 0; i < cumDistances.length - 1; i++) {
+    if (targetDist >= cumDistances[i] && targetDist <= cumDistances[i + 1]) {
+      segIdx = i;
+      break;
+    }
+  }
+
+  const segStartDist = cumDistances[segIdx];
+  const segEndDist = cumDistances[segIdx + 1];
+  const segLength = segEndDist - segStartDist;
+
+  if (segLength <= 0.0001) return points[segIdx];
+
+  const t = Math.max(0, Math.min(1, (targetDist - segStartDist) / segLength));
+  const p1 = points[segIdx];
+  const p2 = points[segIdx + 1];
+
+  return [
+    Number((p1[0] + (p2[0] - p1[0]) * t).toFixed(6)),
+    Number((p1[1] + (p2[1] - p1[1]) * t).toFixed(6)),
+  ];
+}

@@ -28,7 +28,16 @@ import {
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { scorePropertyForIntent, BUSINESS_TYPE_META } from '@/lib/aiEngine';
 import { getBuildingFootprintsGeoJSON } from '@/lib/building3dGeo';
-import { calculateHaversineMeters, calculateBearingDegrees } from '@/lib/geoUtils';
+import {
+  calculateHaversineMeters,
+  calculateBearingDegrees,
+  shortestAngleDiff,
+  smoothAngle,
+  easeInOutCubic,
+  smoothRouteGeometry,
+  buildCumulativeDistances,
+  samplePointAtDistance,
+} from '@/lib/geoUtils';
 import type { PropertyItem, POICategory, POIItem, RouteResult } from '@/types';
 
 export interface InteractiveMapProps {
@@ -880,7 +889,7 @@ export function InteractiveMap({
     });
   };
 
-  // Start smooth camera fly-along along route polyline
+  // Start silky-smooth cinematic camera fly-along along route polyline
   const startRouteCameraFlyalong = (route: RouteResult) => {
     const map = mapRef.current;
     if (!map || !route.geometry || route.geometry.length === 0) return;
@@ -890,76 +899,107 @@ export function InteractiveMap({
       flightAnimRef.current = null;
     }
 
-    const pts = route.geometry.map((pt) => toLngLat(pt));
-    if (pts.length < 2) return;
+    const rawPts = route.geometry.map((pt) => toLngLat(pt));
+    if (rawPts.length < 2) return;
 
-    const segDistances: number[] = [];
-    const cumLengths: number[] = [0];
-    let totalLen = 0;
+    // Smooth route geometry with rounded corner fillets for C1 path continuity
+    const smoothPts = smoothRouteGeometry(rawPts, 10);
+    const { totalDistance, cumDistances } = buildCumulativeDistances(smoothPts);
 
-    for (let i = 0; i < pts.length - 1; i++) {
-      const d = calculateHaversineMeters(pts[i], pts[i + 1]);
-      segDistances.push(d);
-      totalLen += d;
-      cumLengths.push(totalLen);
-    }
-
-    if (totalLen <= 0) return;
+    if (totalDistance <= 0) return;
 
     setFlyingRoute(route);
     setFlightProgress(0);
 
-    const duration = Math.min(12000, Math.max(5000, (totalLen / 65) * 1000));
+    // Duration: cinematic scale based on square root of distance (5.5s to 13.5s)
+    const duration = Math.min(13500, Math.max(5500, Math.sqrt(totalDistance) * 380));
     const startTime = performance.now();
+    let lastFrameTime = startTime;
+    let lastProgressUpdate = startTime;
+
+    // Initial look-ahead target and initial bearing
+    const initialLookAheadDist = Math.min(totalDistance, 28);
+    const pStart = smoothPts[0];
+    const pInitialLook = samplePointAtDistance(smoothPts, cumDistances, initialLookAheadDist);
+    let currentBearing = calculateBearingDegrees(pStart, pInitialLook);
+
+    // If map already has a bearing, smoothly blend from current map bearing if close
+    const mapBearing = map.getBearing();
+    if (!isNaN(mapBearing)) {
+      const diff = Math.abs(shortestAngleDiff(mapBearing, currentBearing));
+      if (diff < 80) {
+        currentBearing = mapBearing;
+      }
+    }
 
     const animateFlight = (now: number) => {
       const elapsed = now - startTime;
-      const alpha = Math.min(1, elapsed / duration);
-      setFlightProgress(Math.round(alpha * 100));
+      const rawAlpha = Math.min(1, elapsed / duration);
+      const easedAlpha = easeInOutCubic(rawAlpha);
 
-      const targetDist = alpha * totalLen;
-
-      let segIdx = 0;
-      for (let i = 0; i < segDistances.length; i++) {
-        if (targetDist >= cumLengths[i] && targetDist <= cumLengths[i + 1]) {
-          segIdx = i;
-          break;
-        }
+      // Throttle React state re-renders to ~8 updates per second instead of 60 FPS
+      if (now - lastProgressUpdate > 120 || rawAlpha >= 1) {
+        lastProgressUpdate = now;
+        setFlightProgress(Math.round(rawAlpha * 100));
       }
 
-      const segLen = segDistances[segIdx] || 1;
-      const segAlpha = Math.max(0, Math.min(1, (targetDist - cumLengths[segIdx]) / segLen));
-      const p1 = pts[segIdx];
-      const p2 = pts[Math.min(pts.length - 1, segIdx + 1)];
+      // Exact distance along path
+      const curDist = easedAlpha * totalDistance;
+      const curPos = samplePointAtDistance(smoothPts, cumDistances, curDist);
 
-      const curLng = p1[0] + (p2[0] - p1[0]) * segAlpha;
-      const curLat = p1[1] + (p2[1] - p1[1]) * segAlpha;
+      // Virtual drone chase-cam: look ahead 22-30m along the smoothed polyline
+      const remainingDist = totalDistance - curDist;
+      const dynamicLookAhead = Math.min(
+        remainingDist,
+        Math.max(14, 28 * (1 - rawAlpha * 0.35))
+      );
+      const targetLookDist = Math.min(totalDistance, curDist + dynamicLookAhead);
+      const lookPos = samplePointAtDistance(smoothPts, cumDistances, targetLookDist);
 
-      const lookAheadIdx = Math.min(pts.length - 1, segIdx + 1);
-      const bearing = calculateBearingDegrees([curLng, curLat], pts[lookAheadIdx]);
+      // Target bearing calculation
+      let targetBearing = currentBearing;
+      if (curDist < totalDistance - 3) {
+        targetBearing = calculateBearingDegrees(curPos, lookPos);
+      }
+
+      // Delta-time based low-pass filter (exponential damping) for butter-smooth turns
+      const dt = Math.min(100, Math.max(8, now - lastFrameTime));
+      lastFrameTime = now;
+
+      // Filter factor: higher responsiveness early, smooth damping in turns
+      const filterStrength = 6.2;
+      const turnSmoothing = 1 - Math.exp(-filterStrength * (dt / 1000));
+      currentBearing = smoothAngle(currentBearing, targetBearing, turnSmoothing);
+
+      // Dynamic cinematic camera pitch & zoom breathing
+      const cruiseSine = Math.sin(rawAlpha * Math.PI);
+      const curPitch = 56 + cruiseSine * 6; // 56 deg -> 62 deg -> 56 deg
+      const curZoom = 17.6 + cruiseSine * 0.25; // 17.6 -> 17.85 -> 17.6
 
       map.jumpTo({
-        center: [curLng, curLat],
-        zoom: 17.8,
-        pitch: 62,
-        bearing: bearing,
+        center: curPos,
+        zoom: curZoom,
+        pitch: curPitch,
+        bearing: currentBearing,
       });
 
-      if (alpha < 1) {
+      if (rawAlpha < 1) {
         flightAnimRef.current = requestAnimationFrame(animateFlight);
       } else {
+        const destCoord = smoothPts[smoothPts.length - 1];
         map.easeTo({
-          center: pts[pts.length - 1],
-          zoom: 17.4,
-          pitch: 45,
-          bearing: (bearing + 25) % 360,
-          duration: 1200,
+          center: destCoord,
+          zoom: 17.3,
+          pitch: 46,
+          bearing: (currentBearing + 22) % 360,
+          duration: 1600,
+          easing: (t) => t * (2 - t),
         });
         flightAnimRef.current = null;
         setTimeout(() => {
           setFlyingRoute(null);
           onClearFlyToRoute?.();
-        }, 2200);
+        }, 2400);
       }
     };
 
