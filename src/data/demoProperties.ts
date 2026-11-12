@@ -1,4 +1,4 @@
-import { FloorSpec, PropertyItem } from '@/types';
+import { FloorSpec, PropertyItem, LandlordContact } from '@/types';
 
 const DEMO_PROVENANCE_NOTE =
   'Mô hình mặt bằng minh họa (Demo Data) gắn trên tọa độ khu vực thực tế tại Hà Nội — Kích thước phòng và kết cấu mang tính tham khảo trực quan, cần khảo sát đo đạc thực địa trước khi ký hợp đồng.';
@@ -271,6 +271,15 @@ export const DEMO_PROPERTIES: PropertyItem[] = [
       'Kiểm tra hệ thống thoát mùi và bể tách mỡ nếu cải tạo thành nhà hàng chế biến nhiệt.',
       'Xác minh quy định treo biển hiệu mặt tiền với ban quản lý tuyến phố Dịch Vọng Hậu.',
     ],
+    contact: {
+      name: 'Anh Hoàng Minh',
+      phone: '0912 345 678',
+      zaloPhone: '0912 345 678',
+      role: 'Chính chủ',
+      responseSpeed: 'Phản hồi trong 15 phút',
+      viewingAvailability: 'Xem mặt bằng các ngày trong tuần (8h - 18h), hẹn trước 30 phút',
+      handoverOffer: 'Hỗ trợ 15 ngày setup miễn phí & bàn giao sẵn hệ thống điều hòa cassette âm trần',
+    },
     floors: createThreeFloorLayout('cg101', 5.0, 9.0, 3.6, 3.3, 3.2),
     nearbyPOIs: [
       {
@@ -406,6 +415,15 @@ export const DEMO_PROPERTIES: PropertyItem[] = [
       'Tuyến phố Chùa Láng thường đông đúc vào khung 17:00–18:30; cần bố trí nhân sự hỗ trợ xếp xe máy gọn trên vỉa hè.',
       'Mật độ quán trà sữa/cà phê takeaway nhỏ lẻ khá dày — cần định vị concept không gian ngồi học tập/làm việc ở Tầng 2-3 để tạo khác biệt.',
     ],
+    contact: {
+      name: 'Chị Thu Trang',
+      phone: '0988 765 432',
+      zaloPhone: '0988 765 432',
+      role: 'Chính chủ',
+      responseSpeed: 'Phản hồi trong 10 phút',
+      viewingAvailability: 'Xem mặt bằng tất cả các ngày trong tuần (9h - 20h), linh hoạt cuối tuần',
+      handoverOffer: 'Tặng 20 ngày miễn phí cải tạo mặt bằng & hỗ trợ xin cấp phép biển hiệu quảng cáo',
+    },
     floors: createThreeFloorLayout('dd204', 4.5, 9.3, 3.5, 3.3, 3.2),
     nearbyPOIs: [
       {
@@ -549,6 +567,15 @@ export const DEMO_PROPERTIES: PropertyItem[] = [
       'Khu vực an ninh hành chính - ngoại giao cao; cần tuân thủ nghiêm ngặt quy định tiếng ồn sau 22:00.',
       'Kiểm tra công suất trạm biến áp nhánh nếu vận hành đồng thời nhiều thiết bị xông hơi hoặc lò nướng công nghiệp.',
     ],
+    contact: {
+      name: 'Anh Trần Quốc Hưng',
+      phone: '0903 218 899',
+      zaloPhone: '0903 218 899',
+      role: 'Đại diện ủy quyền',
+      responseSpeed: 'Phản hồi trong 30 phút',
+      viewingAvailability: 'Khảo sát thực địa Thứ 2 - Thứ 7 (8h30 - 17h30)',
+      handoverOffer: 'Miễn phí 1 tháng tiền thuê khi ký hợp đồng trên 3 năm & hỗ trợ nâng cấp nguồn điện 3 pha',
+    },
     floors: createThreeFloorLayout('bd308', 6.0, 8.0, 3.7, 3.4, 3.3),
     nearbyPOIs: [
       {
@@ -681,6 +708,15 @@ export const DEMO_PROPERTIES: PropertyItem[] = [
       'Khách hàng mục tiêu nhạy cảm về giá hơn khu vực Ba Đình/Hoàn Kiếm — cần thiết kế menu hợp túi tiền sinh viên & giảng viên.',
       'Kiểm tra độ cách âm cửa kính Tầng 2-3 do lưu lượng xe qua lại đường Lê Thanh Nghị khá lớn.',
     ],
+    contact: {
+      name: 'Bác Nguyễn Văn Thành',
+      phone: '0913 526 789',
+      zaloPhone: '0913 526 789',
+      role: 'Chính chủ',
+      responseSpeed: 'Phản hồi trong 20 phút',
+      viewingAvailability: 'Xem nhà trực tiếp các ngày trong tuần (7h30 - 19h00)',
+      handoverOffer: 'Hỗ trợ 15 ngày sửa chữa, bàn giao mặt sàn sạch & cam kết giữ ổn định giá thuê 2 năm đầu',
+    },
     floors: createThreeFloorLayout('hbt402', 4.2, 9.0, 3.5, 3.2, 3.1),
     nearbyPOIs: [
       {
@@ -823,6 +859,15 @@ export const DEMO_PROPERTIES: PropertyItem[] = [
       'Mặt tiền hướng Tây Nam (210°) có nắng chiều từ 14:00–16:30; cần kết hợp mái hiên di động kiểu Pháp và kính Low-E.',
       'Giá thuê 48 triệu/tháng đòi hỏi mô hình kinh doanh có biên lợi nhuận và giá trị đơn hàng trung bình (AOV) cao.',
     ],
+    contact: {
+      name: 'Ông Phạm Đức Long',
+      phone: '0936 889 966',
+      zaloPhone: '0936 889 966',
+      role: 'Quản lý tòa nhà',
+      responseSpeed: 'Phản hồi trong 15 phút (Ưu tiên khách doanh nghiệp & thương hiệu lớn)',
+      viewingAvailability: 'Hẹn lịch khảo sát chuyên nghiệp (8h00 - 18h00 cả Thứ 7 & Chủ Nhật)',
+      handoverOffer: 'Ưu đãi 30 ngày fit-out hoàn thiện kiến trúc, bàn giao hệ thống PCCC tiêu chuẩn đã nghiệm thu',
+    },
     floors: createThreeFloorLayout('hk501', 6.0, 9.3, 3.8, 3.5, 3.3),
     nearbyPOIs: [
       {
@@ -956,6 +1001,15 @@ export const DEMO_PROPERTIES: PropertyItem[] = [
       'Hướng Tây Tây Nam (245°) đón nắng hoàng hôn trực diện từ 15:30–17:45; cần bố trí cây xanh, lam gỗ hoặc rèm linen để giảm bức xạ nhiệt mà vẫn giữ được tầm nhìn đẹp.',
       'Lưu lượng khách vãng lai phụ thuộc nhiều vào cư dân địa phương và khách cuối tuần — cần kết hợp truyền thông Google Maps / Instagram tiếng Anh & tiếng Việt.',
     ],
+    contact: {
+      name: 'Chị Elena Vũ (Vũ Mai Lan)',
+      phone: '0979 688 321',
+      zaloPhone: '0979 688 321',
+      role: 'Đại diện ủy quyền',
+      responseSpeed: 'Phản hồi trong 15 phút (Hỗ trợ tiếng Việt & Tiếng Anh)',
+      viewingAvailability: 'Khảo sát không gian và cảnh quan cả ngày (8h30 - 19h30)',
+      handoverOffer: 'Hỗ trợ 25 ngày cải tạo sân vườn & hỗ trợ đăng ký tạm trú / kinh doanh cho đối tác nước ngoài',
+    },
     floors: createThreeFloorLayout('th603', 5.5, 9.5, 3.6, 3.4, 3.3),
     nearbyPOIs: [
       {

@@ -24,11 +24,41 @@ import {
   ChevronRight,
   PanelRightClose,
   PanelRightOpen,
+  Phone,
+  MessageCircle,
 } from 'lucide-react';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { generateLocationBIReport, BUSINESS_TYPE_META } from '@/lib/aiEngine';
 import { InteractiveMap, POI_CATEGORY_META } from '@/components/map/InteractiveMap';
 import type { BusinessType, POICategory, TransportMode } from '@/types';
+
+export interface POIBucket {
+  id: string;
+  name: string;
+  desc: string;
+  categories: POICategory[];
+}
+
+export const POI_BUCKETS: POIBucket[] = [
+  {
+    id: 'target_customers',
+    name: 'Khách hàng mục tiêu',
+    desc: 'Trường học, Văn phòng, Chung cư',
+    categories: ['university', 'office', 'apartment'],
+  },
+  {
+    id: 'competitors_services',
+    name: 'Đối thủ & Dịch vụ',
+    desc: 'Café & F&B, TTTM, Đối thủ ngành',
+    categories: ['cafe_restaurant', 'mall', 'competitor'],
+  },
+  {
+    id: 'transport_utilities',
+    name: 'Giao thông & Tiện ích',
+    desc: 'Bãi đỗ xe, Tuyến Bus, Bệnh viện',
+    categories: ['parking', 'bus_stop', 'hospital'],
+  },
+];
 
 const ALL_POI_CATEGORIES: POICategory[] = [
   'university',
@@ -211,6 +241,64 @@ export function LocationIntelView() {
             </select>
           </div>
 
+          {/* Compact Landlord Contact Block */}
+          {selectedProperty.contact && (
+            <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/80 space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-blue-800 uppercase tracking-wide">
+                    {selectedProperty.contact.role || 'Chủ nhà'}
+                  </span>
+                  {selectedProperty.contact.responseSpeed && (
+                    <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      {selectedProperty.contact.responseSpeed}
+                    </span>
+                  )}
+                </div>
+                {selectedProperty.contact.viewingAvailability && (
+                  <span
+                    className="text-[10px] text-slate-500 truncate max-w-[170px]"
+                    title={selectedProperty.contact.viewingAvailability}
+                  >
+                    {selectedProperty.contact.viewingAvailability}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-slate-900 leading-tight truncate">
+                    {selectedProperty.contact.name}
+                  </div>
+                  <div className="text-[11px] font-mono text-slate-600">
+                    {selectedProperty.contact.phone}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <a
+                    href={`tel:${selectedProperty.contact.phone.replace(/\s+/g, '')}`}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                    title={`Gọi ngay cho ${selectedProperty.contact.name}`}
+                  >
+                    <Phone className="w-3 h-3" />
+                    <span>Gọi ngay</span>
+                  </a>
+                  <a
+                    href={`https://zalo.me/${(selectedProperty.contact.zaloPhone || selectedProperty.contact.phone).replace(/\s+/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                    title={`Chat Zalo với ${selectedProperty.contact.name}`}
+                  >
+                    <MessageCircle className="w-3 h-3" />
+                    <span>Zalo</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Focused Tab Switcher */}
           <div className="flex p-1 rounded-lg bg-slate-100 text-xs">
             <button
@@ -243,26 +331,41 @@ export function LocationIntelView() {
 
         {/* Tab 1: AI Business Intelligence Analysis */}
         {panelTab === 'bi' && biReport && (
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50">
-            {/* 1. Suitability Summary */}
-            <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-50/50">
+            {/* 1. Suitability Summary - Clean Concise Bullets */}
+            <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                   <Target className="w-4 h-4 text-blue-600" />
-                  Mức độ phù hợp với ngành {BUSINESS_TYPE_META[selectedBusinessType]?.labelVi}
+                  Đánh giá vị trí ({BUSINESS_TYPE_META[selectedBusinessType]?.labelVi})
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                  AI Khảo Sát
                 </span>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                {biReport.suitabilitySummary}
-              </p>
+              <ul className="space-y-1.5 text-xs text-slate-600">
+                {biReport.suitabilitySummary
+                  .split(/(?<=[.!?])\s+/)
+                  .map((s) => s.trim())
+                  .filter((s) => s.length > 8)
+                  .map((bullet, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                      <span className="leading-snug">{bullet}</span>
+                    </li>
+                  ))}
+              </ul>
             </div>
 
-            {/* 2. Target Customer Segments */}
-            <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-3">
+            {/* 2. Target Customer Segments - Concise Cards */}
+            <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                   <Users className="w-4 h-4 text-emerald-600" />
-                  Nhóm khách hàng tiếp cận
+                  Tệp khách hàng trọng tâm
+                </span>
+                <span className="text-[11px] text-slate-500 font-medium">
+                  {biReport.targetCustomerSegments.length} nhóm đối tượng
                 </span>
               </div>
               <div className="space-y-2">
@@ -271,29 +374,31 @@ export function LocationIntelView() {
                   return (
                     <div
                       key={idx}
-                      className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 space-y-1"
+                      className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 flex items-start justify-between gap-2"
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold text-slate-800">{seg.segment}</span>
-                        <span
-                          className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold border ${
-                            isRealPOI
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-purple-50 text-purple-700 border-purple-200'
-                          }`}
-                        >
-                          {isRealPOI ? 'Dữ liệu POI thực tế' : 'Suy luận mô hình'}
-                        </span>
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-slate-800">{seg.segment}</div>
+                        <p className="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                          {seg.rationale}
+                        </p>
                       </div>
-                      <p className="text-xs text-slate-600 leading-snug">{seg.rationale}</p>
+                      <span
+                        className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                          isRealPOI
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-purple-50 text-purple-700 border-purple-200'
+                        }`}
+                      >
+                        {isRealPOI ? 'Dữ liệu thực' : 'Ước lượng'}
+                      </span>
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            {/* 3. Competitor Density */}
-            <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2">
+            {/* 3. Competitor Density - Concise Bullets */}
+            <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                   <Compass className="w-4 h-4 text-rose-600" />
@@ -316,9 +421,18 @@ export function LocationIntelView() {
                     : 'Thấp'}
                 </span>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                {biReport.competitorAnalysis.summary}
-              </p>
+              <ul className="space-y-1.5 text-xs text-slate-600">
+                {biReport.competitorAnalysis.summary
+                  .split(/(?<=[.!?])\s+/)
+                  .map((s) => s.trim())
+                  .filter((s) => s.length > 5)
+                  .map((bullet, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0 mt-1.5" />
+                      <span className="leading-snug">{bullet}</span>
+                    </li>
+                  ))}
+              </ul>
             </div>
 
             {/* 4. Field Survey Risks Checklist */}
@@ -401,42 +515,114 @@ export function LocationIntelView() {
               </div>
             </div>
 
-            {/* Category Filter Chips */}
-            <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-xs">
+            {/* 3 Decluttered POI Buckets */}
+            <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-3 shadow-xs">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-slate-800 flex items-center gap-1">
                   <Layers className="w-3.5 h-3.5 text-blue-600" />
-                  Lọc nhóm tiện ích xung quanh:
+                  Nhóm tiện ích phân loại (3 nhóm):
                 </span>
-                <span className="text-[11px] text-slate-500">
-                  {filteredPOIs.length}/{selectedProperty.nearbyPOIs.length} điểm
+                <span className="text-[11px] font-medium text-slate-500">
+                  {filteredPOIs.length}/{selectedProperty.nearbyPOIs.length} điểm hiển thị
                 </span>
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {ALL_POI_CATEGORIES.map((cat) => {
-                  const meta = POI_CATEGORY_META[cat];
-                  const isEnabled = activePOICategories.includes(cat);
-                  const count = categoryCounts[cat] || 0;
+
+              <div className="space-y-2.5">
+                {POI_BUCKETS.map((bucket) => {
+                  const bucketPOICount = bucket.categories.reduce(
+                    (sum, cat) => sum + (categoryCounts[cat] || 0),
+                    0
+                  );
+                  const isAllActive = bucket.categories.every((cat) =>
+                    activePOICategories.includes(cat)
+                  );
+                  const isAnyActive = bucket.categories.some((cat) =>
+                    activePOICategories.includes(cat)
+                  );
+
+                  const handleToggleBucket = () => {
+                    if (isAllActive) {
+                      bucket.categories.forEach((cat) => {
+                        if (activePOICategories.includes(cat)) {
+                          togglePOICategory(cat);
+                        }
+                      });
+                    } else {
+                      bucket.categories.forEach((cat) => {
+                        if (!activePOICategories.includes(cat)) {
+                          togglePOICategory(cat);
+                        }
+                      });
+                    }
+                  };
+
                   return (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => togglePOICategory(cat)}
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
-                        isEnabled
-                          ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                          : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
-                      }`}
+                    <div
+                      key={bucket.id}
+                      className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2"
                     >
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{ backgroundColor: meta.bgHex }}
-                      />
-                      <span>{meta.shortLabel}</span>
-                      <span className="text-[10px] opacity-75 font-normal">
-                        ({count})
-                      </span>
-                    </button>
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-slate-900">
+                              {bucket.name}
+                            </span>
+                            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-slate-200 text-slate-700">
+                              {bucketPOICount}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500">{bucket.desc}</p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleToggleBucket}
+                          className={`shrink-0 px-2 py-0.5 rounded-lg text-[10px] font-semibold border transition-all ${
+                            isAllActive
+                              ? 'bg-slate-900 text-white border-slate-900'
+                              : isAnyActive
+                              ? 'bg-blue-100 text-blue-800 border-blue-300'
+                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          {isAllActive
+                            ? 'Đang bật cả nhóm'
+                            : isAnyActive
+                            ? 'Bật một phần'
+                            : 'Bật nhóm'}
+                        </button>
+                      </div>
+
+                      {/* Sub-chips for each category inside bucket */}
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        {bucket.categories.map((cat) => {
+                          const meta = POI_CATEGORY_META[cat];
+                          const isEnabled = activePOICategories.includes(cat);
+                          const count = categoryCounts[cat] || 0;
+                          return (
+                            <button
+                              key={cat}
+                              type="button"
+                              onClick={() => togglePOICategory(cat)}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-medium border transition-all ${
+                                isEnabled
+                                  ? 'bg-white text-slate-900 border-slate-400 font-semibold shadow-2xs'
+                                  : 'bg-slate-100/80 text-slate-400 border-slate-200 hover:bg-slate-200/60'
+                              }`}
+                            >
+                              <span
+                                className="w-1.5 h-1.5 rounded-full shrink-0"
+                                style={{ backgroundColor: meta.bgHex }}
+                              />
+                              <span>{meta.shortLabel}</span>
+                              <span className="text-[10px] opacity-75 font-normal">
+                                ({count})
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   );
                 })}
               </div>

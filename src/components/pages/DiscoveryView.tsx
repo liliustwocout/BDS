@@ -22,17 +22,19 @@ import {
   Info,
   ChevronDown,
   ChevronUp,
+  UserCheck,
+  Phone,
+  MessageSquare,
 } from 'lucide-react';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { scorePropertyForIntent, BUSINESS_TYPE_META } from '@/lib/aiEngine';
 import { InteractiveMap, POI_CATEGORY_META } from '@/components/map/InteractiveMap';
+import { LandlordContactCard } from '@/components/common/LandlordContactCard';
 import type { BusinessType, PropertyItem } from '@/types';
 
 const EXAMPLE_PROMPTS = [
-  'Mở quán cà phê tại Cầu Giấy, 100–150m², ngân sách 20–30 triệu/tháng, gần văn phòng',
-  'Mặt bằng mở spa làm đẹp tại Đống Đa, dưới 25 triệu/tháng, chỗ đỗ xe thuận tiện',
-  'Tìm mặt bằng nhà hàng tại Ba Đình, diện tích trên 140m², vỉa hè rộng',
-  'Showroom thời trang tại Hoàn Kiếm, mặt tiền trên 6m, gần trung tâm thương mại',
+  'Quán cà phê tại Cầu Giấy, 100–150m², ngân sách 20–30 tr/tháng, gần văn phòng',
+  'Mặt bằng showroom thời trang tại Hoàn Kiếm, mặt tiền rộng',
 ];
 
 const BUSINESS_TYPES: BusinessType[] = [
@@ -75,6 +77,7 @@ export function DiscoveryView() {
   );
   const [showFilters, setShowFilters] = useState(false);
   const [expandedCardId, setExpandedCardId] = useState<string | null>(selectedPropertyId);
+  const [expandedScoreCardId, setExpandedScoreCardId] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list');
 
   const districts = useMemo(() => {
@@ -456,19 +459,18 @@ export function DiscoveryView() {
                       <p className="text-xs text-slate-500">{property.address}</p>
                     </div>
 
-                    {/* Match Score Badge */}
-                    <div
-                      className={`shrink-0 px-2.5 py-1.5 rounded-xl border text-center ${scoreBadgeColor}`}
-                    >
-                      <div className="text-base font-extrabold leading-none">{overall}%</div>
-                      <div className="text-[9px] uppercase tracking-wider mt-0.5 font-semibold">
-                        Phù hợp
+                    <div className="text-right shrink-0">
+                      <div className="text-base font-extrabold text-emerald-700 leading-none">
+                        {property.monthlyRentMillionVND} <span className="text-xs font-semibold text-slate-600">tr/th</span>
+                      </div>
+                      <div className="text-[10px] text-slate-400 mt-1">
+                        {property.floorsCount} tầng • {property.totalAreaSqm} m²
                       </div>
                     </div>
                   </div>
 
                   {/* Core Property Specs */}
-                  <div className="grid grid-cols-4 gap-2 my-3 p-2 rounded-lg bg-slate-50 border border-slate-100 text-center">
+                  <div className="grid grid-cols-4 gap-2 my-2.5 p-2 rounded-lg bg-slate-50 border border-slate-100 text-center">
                     <div>
                       <div className="text-[10px] text-slate-500 font-medium flex items-center justify-center gap-0.5">
                         <DollarSign className="w-3 h-3 text-blue-600" />
@@ -484,13 +486,13 @@ export function DiscoveryView() {
                         Diện tích
                       </div>
                       <div className="text-xs font-bold text-slate-900">
-                        {property.totalAreaSqm} m² ({property.floorsCount}T)
+                        {property.totalAreaSqm} m²
                       </div>
                     </div>
                     <div>
                       <div className="text-[10px] text-slate-500 font-medium">Mặt tiền</div>
                       <div className="text-xs font-bold text-slate-900">
-                        {property.frontageMeters}m / Đ.{property.roadWidthMeters}m
+                        {property.frontageMeters}m
                       </div>
                     </div>
                     <div>
@@ -504,66 +506,115 @@ export function DiscoveryView() {
                     </div>
                   </div>
 
-                  {/* Score Breakdown Bars */}
-                  <div className="p-2.5 rounded-lg bg-slate-50/70 border border-slate-100 space-y-2">
-                    <div className="flex items-center justify-between text-[11px] text-slate-500">
-                      <span className="font-semibold text-slate-700">
-                        Phân rã tiêu chí phù hợp
-                      </span>
-                      <span className="text-blue-700 font-medium">
-                        Ngành: {BUSINESS_TYPE_META[selectedBusinessType]?.labelVi}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-5 gap-1.5">
-                      {breakdownBars.map((bar) => {
-                        const val = Math.round(bar.score);
-                        const barColor =
-                          val >= 80
-                            ? 'bg-emerald-500'
-                            : val >= 65
-                            ? 'bg-blue-600'
-                            : 'bg-amber-500';
-                        return (
-                          <div key={bar.label} className="space-y-1">
-                            <div className="flex items-center justify-between text-[10px]">
-                              <span className="text-slate-500 truncate">{bar.label}</span>
-                              <span className="font-bold text-slate-700">{val}</span>
-                            </div>
-                            <div className="w-full h-1.5 rounded-full bg-slate-200 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full ${barColor}`}
-                                style={{ width: `${Math.min(100, Math.max(8, val))}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
+                  {/* 1 Clean Match Pill with Expand Toggle for Score Breakdown */}
+                  <div className="rounded-lg bg-slate-50/80 border border-slate-200/70 p-2.5 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-wrap min-w-0">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${scoreBadgeColor}`}
+                        >
+                          <span>
+                            {overall}% Phù hợp {BUSINESS_TYPE_META[selectedBusinessType]?.labelVi || 'mô hình'}
+                          </span>
+                        </span>
+                        <span className="text-[11px] text-slate-500 truncate hidden sm:inline">
+                          Điểm vị trí & quy mô
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedScoreCardId((cur) => (cur === property.id ? null : property.id));
+                        }}
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-700 shrink-0 p-1"
+                      >
+                        <span>{expandedScoreCardId === property.id ? 'Thu gọn' : 'Chi tiết điểm'}</span>
+                        {expandedScoreCardId === property.id ? (
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        ) : (
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        )}
+                      </button>
                     </div>
 
-                    {/* Key Reasons & Considerations */}
-                    {isExpanded && (
-                      <div className="pt-2 border-t border-slate-200/80 space-y-1.5 text-xs">
-                        {match.reasons.slice(0, 3).map((reason, rIdx) => (
-                          <div
-                            key={rIdx}
-                            className="flex items-start gap-1.5 text-slate-700 leading-snug"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0 mt-0.5 text-emerald-600" />
-                            <span>{reason}</span>
-                          </div>
-                        ))}
-                        {match.warnings.slice(0, 2).map((warn, wIdx) => (
-                          <div
-                            key={wIdx}
-                            className="flex items-start gap-1.5 text-amber-800 leading-snug"
-                          >
-                            <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-600" />
-                            <span>{warn}</span>
-                          </div>
-                        ))}
+                    {/* Expandable detailed score bars (hidden by default) */}
+                    {expandedScoreCardId === property.id && (
+                      <div className="mt-2.5 pt-2 border-t border-slate-200/80 space-y-2 animate-in fade-in duration-150">
+                        <div className="grid grid-cols-5 gap-1.5">
+                          {breakdownBars.map((bar) => {
+                            const val = Math.round(bar.score);
+                            const barColor =
+                              val >= 80 ? 'bg-emerald-500' : val >= 65 ? 'bg-blue-600' : 'bg-amber-500';
+                            return (
+                              <div key={bar.label} className="space-y-1">
+                                <div className="flex items-center justify-between text-[10px]">
+                                  <span className="text-slate-500 truncate">{bar.label}</span>
+                                  <span className="font-bold text-slate-700">{val}</span>
+                                </div>
+                                <div className="w-full h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full ${barColor}`}
+                                    style={{ width: `${Math.min(100, Math.max(8, val))}%` }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Reasons & Warnings */}
+                        <div className="space-y-1 text-xs pt-1">
+                          {match.reasons.slice(0, 2).map((reason, rIdx) => (
+                            <div key={rIdx} className="flex items-start gap-1.5 text-slate-700 leading-snug">
+                              <CheckCircle2 className="w-3.5 h-3.5 shrink-0 mt-0.5 text-emerald-600" />
+                              <span>{reason}</span>
+                            </div>
+                          ))}
+                          {match.warnings.slice(0, 1).map((warn, wIdx) => (
+                            <div key={wIdx} className="flex items-start gap-1.5 text-amber-800 leading-snug">
+                              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-600" />
+                              <span>{warn}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
+
+                  {/* Landlord Contact Section: Full on Selected Property, Compact on non-selected */}
+                  {isSelected ? (
+                    <div className="mt-3 pt-3 border-t border-slate-200 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                          <UserCheck className="w-4 h-4 text-blue-600" />
+                          <span>Thông tin liên hệ chủ nhà & Khảo sát</span>
+                        </span>
+                        <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                          Chính chủ xác thực
+                        </span>
+                      </div>
+                      <LandlordContactCard
+                        property={property}
+                        contact={property.contact}
+                        variant="full"
+                      />
+                    </div>
+                  ) : (
+                    <div className="mt-2.5 flex items-center justify-between text-xs text-slate-600 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-100">
+                      <div className="flex items-center gap-1.5 truncate">
+                        <UserCheck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span className="text-[11px] truncate">
+                          Chủ nhà: <strong className="text-slate-800">{property.contact.name}</strong> •{' '}
+                          <span className="font-mono text-slate-600">{property.contact.phone}</span>
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-blue-600 font-semibold shrink-0">
+                        Xem liên hệ &rarr;
+                      </span>
+                    </div>
+                  )}
 
                   {/* Actions Footer */}
                   <div className="mt-3 flex flex-wrap items-center gap-1.5">

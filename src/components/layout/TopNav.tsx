@@ -288,10 +288,10 @@ export const TopNav: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  title={`${tab.label} — ${tab.description} (${tab.shortcut})`}
-                  className={`group relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs transition-all whitespace-nowrap ${
+                  title={`${tab.label} (${tab.shortcut}) — ${tab.description}`}
+                  className={`group relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition-colors whitespace-nowrap ${
                     isActive
-                      ? 'bg-slate-900 text-white font-semibold shadow-sm'
+                      ? 'bg-slate-900 text-white font-semibold shadow-xs'
                       : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'
                   }`}
                 >
@@ -300,14 +300,12 @@ export const TopNav: React.FC = () => {
                       isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-800'
                     }`}
                   />
-                  <span className="hidden 2xl:inline">{tab.label}</span>
-                  <span className="inline 2xl:hidden">
-                    {tab.shortLabel}
-                  </span>
+                  <span className="hidden xl:inline">{tab.label}</span>
+                  <span className="inline xl:hidden">{tab.shortLabel}</span>
 
                   {isComparison && comparedPropertyIds.length > 0 && (
                     <span
-                      className={`ml-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 font-mono text-[10px] font-bold ${
+                      className={`ml-1 flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 font-mono text-[10px] font-bold ${
                         isActive
                           ? 'bg-white text-slate-900'
                           : 'bg-slate-200 text-slate-800'
@@ -316,16 +314,6 @@ export const TopNav: React.FC = () => {
                       {comparedPropertyIds.length}
                     </span>
                   )}
-
-                  <span
-                    className={`hidden xl:inline-block ml-1 rounded px-1 py-0.2 font-mono text-[9px] border ${
-                      isActive
-                        ? 'bg-slate-800 text-slate-300 border-slate-700'
-                        : 'bg-slate-100 text-slate-500 border-slate-200'
-                    }`}
-                  >
-                    {tab.shortcut}
-                  </span>
                 </button>
               );
             })}

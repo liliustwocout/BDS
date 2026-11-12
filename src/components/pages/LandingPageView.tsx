@@ -15,9 +15,14 @@ import {
   ChevronRight,
   ShieldCheck,
   Sparkles,
+  Phone,
+  MessageSquare,
+  DollarSign,
+  UserCheck,
 } from 'lucide-react';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { BusinessType, PropertyItem } from '@/types';
+import { LandlordContactModal } from '@/components/common/LandlordContactCard';
 
 // Curated filter categories for quick chips
 type QuickCategory = 'all' | 'fnb' | 'office' | 'retail' | 'spa';
@@ -179,6 +184,7 @@ export const LandingPageView: React.FC = () => {
   const [selectedBizType, setSelectedBizType] = useState('all');
   const [selectedPrice, setSelectedPrice] = useState('all');
   const [activeCategory, setActiveCategory] = useState<QuickCategory>('all');
+  const [bookingProperty, setBookingProperty] = useState<PropertyItem | null>(null);
 
   // Filter properties for the grid based on category chip
   const filteredProperties = useMemo(() => {
@@ -432,80 +438,123 @@ export const LandingPageView: React.FC = () => {
                   </p>
                 </div>
 
-                {/* Pricing & Key Metrics Bar */}
-                <div className="my-3 flex items-baseline justify-between border-y border-slate-100 py-2.5">
-                  <div>
-                    <span className="text-lg font-extrabold text-emerald-700">
-                      {prop.monthlyRentMillionVND}
-                    </span>
-                    <span className="text-xs font-medium text-slate-600 ml-1">
-                      triệu/tháng
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-medium text-slate-500">
-                    {(
-                      (prop.monthlyRentMillionVND * 1000000) /
-                      prop.totalAreaSqm /
-                      1000
-                    ).toFixed(0)}{' '}
-                    nghìn/m²
-                  </span>
-                </div>
-
-                {/* 4 Core Architectural Specifications */}
-                <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 mb-4">
-                  <div className="flex items-center gap-1.5 rounded bg-slate-50 p-2 border border-slate-100">
-                    <Maximize2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                    <div>
-                      <div className="text-[10px] text-slate-600 font-semibold">Diện tích</div>
-                      <div className="font-semibold text-slate-800">
-                        {prop.totalAreaSqm} m² ({prop.floorsCount} tầng)
+                {/* Decluttered 4 Key Metrics: Giá thuê, Diện tích, Mặt tiền, Số tầng */}
+                <div className="my-3 grid grid-cols-2 gap-2 text-xs border-y border-slate-100 py-3">
+                  {/* Metric 1: Giá thuê */}
+                  <div className="rounded-lg bg-emerald-50/70 p-2 border border-emerald-100 flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                      <DollarSign className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] text-slate-500 font-medium">Giá thuê</div>
+                      <div className="font-extrabold text-emerald-800 text-sm leading-tight truncate">
+                        {prop.monthlyRentMillionVND}{' '}
+                        <span className="text-[11px] font-semibold text-emerald-700">tr/th</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 rounded bg-slate-50 p-2 border border-slate-100">
-                    <Building2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                    <div>
-                      <div className="text-[10px] text-slate-600 font-semibold">Mặt tiền</div>
-                      <div className="font-semibold text-slate-800">
-                        {prop.frontageMeters} m
+                  {/* Metric 2: Diện tích */}
+                  <div className="rounded-lg bg-slate-50 p-2 border border-slate-100 flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                      <Maximize2 className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] text-slate-500 font-medium">Diện tích</div>
+                      <div className="font-bold text-slate-900 text-sm leading-tight truncate">
+                        {prop.totalAreaSqm}{' '}
+                        <span className="text-[11px] font-normal text-slate-500">m²</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 rounded bg-slate-50 p-2 border border-slate-100">
-                    <Compass className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                    <div>
-                      <div className="text-[10px] text-slate-600 font-semibold">Hướng nhà</div>
-                      <div className="font-semibold text-slate-800 truncate">
-                        {prop.orientationLabel}
+                  {/* Metric 3: Mặt tiền */}
+                  <div className="rounded-lg bg-slate-50 p-2 border border-slate-100 flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                      <Building2 className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] text-slate-500 font-medium">Mặt tiền</div>
+                      <div className="font-bold text-slate-900 text-sm leading-tight truncate">
+                        {prop.frontageMeters}{' '}
+                        <span className="text-[11px] font-normal text-slate-500">m</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 rounded bg-slate-50 p-2 border border-slate-100">
-                    <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                    <div>
-                      <div className="text-[10px] text-slate-600 font-semibold">Đường trước nhà</div>
-                      <div className="font-semibold text-slate-800">
-                        {prop.roadWidthMeters} m
+                  {/* Metric 4: Số tầng */}
+                  <div className="rounded-lg bg-slate-50 p-2 border border-slate-100 flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                      <Layers className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] text-slate-500 font-medium">Số tầng</div>
+                      <div className="font-bold text-slate-900 text-sm leading-tight truncate">
+                        {prop.floorsCount}{' '}
+                        <span className="text-[11px] font-normal text-slate-500">tầng</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Highlights tags */}
-                <div className="mb-4 flex flex-wrap gap-1.5">
-                  {prop.tags.slice(0, 2).map((tag, tIdx) => (
-                    <span
-                      key={tIdx}
-                      className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600"
+                {/* Compact Landlord Contact Badge & Direct Action */}
+                <div className="mb-3 flex items-center justify-between gap-1.5 p-2 rounded-lg bg-slate-50/90 border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setBookingProperty(prop)}
+                    className="flex items-center gap-1.5 min-w-0 text-left hover:text-blue-600 transition group/contact"
+                    title="Nhấn để xem liên hệ chủ nhà & đặt lịch khảo sát"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-[10px] shrink-0">
+                      {prop.contact.name.slice(0, 1)}
+                    </div>
+                    <div className="truncate text-xs">
+                      <span className="text-slate-500 text-[11px]">Liên hệ: </span>
+                      <strong className="text-slate-800 font-semibold group-hover/contact:text-blue-600">
+                        {prop.contact.name}
+                      </strong>
+                      <span className="text-slate-400 mx-1">•</span>
+                      <span className="font-mono text-[11px] text-slate-600">{prop.contact.phone}</span>
+                    </div>
+                  </button>
+
+                  <div className="flex items-center gap-1 shrink-0">
+                    <a
+                      href={`tel:${prop.contact.phone.replace(/[^\d+]/g, '')}`}
+                      title={`Gọi ${prop.contact.phone}`}
+                      className="p-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white transition shadow-xs"
                     >
-                      {tag}
-                    </span>
-                  ))}
+                      <Phone className="w-3 h-3 text-emerald-400" />
+                    </a>
+                    <a
+                      href={`https://zalo.me/${(prop.contact.zaloPhone || prop.contact.phone).replace(/[^\d+]/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Nhắn Zalo"
+                      className="p-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white transition shadow-xs"
+                    >
+                      <MessageSquare className="w-3 h-3" />
+                    </a>
+                  </div>
                 </div>
+
+                {/* Handover incentive or Highlights */}
+                {prop.contact.handoverOffer ? (
+                  <div className="mb-3 rounded bg-amber-50/80 border border-amber-200/70 px-2.5 py-1 text-[11px] font-medium text-amber-900 line-clamp-1">
+                    <span className="font-semibold text-amber-950">Ưu đãi:</span> {prop.contact.handoverOffer}
+                  </div>
+                ) : (
+                  <div className="mb-3 flex flex-wrap gap-1.5">
+                    {prop.tags.slice(0, 2).map((tag, tIdx) => (
+                      <span
+                        key={tIdx}
+                        className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {/* Action Buttons: 3D Twin & 3D Map */}
                 <div className="mt-auto grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
@@ -615,6 +664,16 @@ export const LandingPageView: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* Landlord Contact & Booking Viewing Modal */}
+      {bookingProperty && (
+        <LandlordContactModal
+          isOpen={!!bookingProperty}
+          onClose={() => setBookingProperty(null)}
+          property={bookingProperty}
+          contact={bookingProperty.contact}
+        />
+      )}
     </div>
   );
 };

@@ -22,6 +22,9 @@ import {
   FileText,
   MapPin,
   Check,
+  Phone,
+  UserCheck,
+  MessageCircle,
 } from 'lucide-react';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import {
@@ -165,8 +168,27 @@ export function ComparisonReportView() {
   };
 
   return (
-    <div className="w-full min-h-[calc(100vh-4rem)] bg-slate-50 text-slate-800 p-4 md:p-6 lg:p-8 print:p-0 print:bg-white print:text-slate-900">
+    <div className="w-full min-h-[calc(100vh-4rem)] bg-slate-50 text-slate-800 p-4 md:p-6 lg:p-8 print:p-6 print:bg-white print:text-slate-900">
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Print-Only Professional Cover / Header */}
+        <div className="hidden print:block border-b-2 border-slate-800 pb-3 mb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-lg font-black tracking-tight text-slate-900 uppercase">
+                SpaceVision AI • Báo Cáo Thẩm Định & So Sánh Mặt Bằng Thương Mại
+              </div>
+              <div className="text-xs text-slate-600 mt-0.5">
+                Mô hình: {BUSINESS_TYPE_META[selectedBusinessType]?.labelVi} • Phong cách:{' '}
+                {DESIGN_STYLE_META[selectedDesignStyle]?.label}
+              </div>
+            </div>
+            <div className="text-right text-xs text-slate-500">
+              <div>Bản quyền SpaceVision AI</div>
+              <div>Hà Nội, Việt Nam</div>
+            </div>
+          </div>
+        </div>
+
         {/* ======================================================== */}
         {/* 1. TOP EXECUTIVE HEADER & INTERACTIVE CONTROLS          */}
         {/* ======================================================== */}
@@ -476,6 +498,80 @@ export function ComparisonReportView() {
                 ))}
               </tr>
 
+              {/* Row: Đầu mối liên hệ & Khảo sát */}
+              <tr className="bg-blue-50/20 print:bg-white">
+                <td className="p-4 font-semibold text-slate-700 bg-slate-50/50 print:bg-white print:border-slate-300">
+                  <div className="flex items-center gap-1.5">
+                    <UserCheck className="w-4 h-4 text-blue-600 print:text-slate-800" />
+                    <span>Đầu mối liên hệ & Khảo sát</span>
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-normal mt-0.5">
+                    Chính chủ & Ưu đãi bàn giao
+                  </div>
+                </td>
+                {evaluatedColumns.map(({ property }) => {
+                  const contact = property.contact;
+                  return (
+                    <td
+                      key={property.id}
+                      className="p-4 border-l border-slate-200 print:border-slate-300 space-y-2"
+                    >
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="font-bold text-slate-900 text-xs sm:text-sm">
+                          {contact?.name || 'Anh Minh'}
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-bold border border-blue-200 print:border-slate-300 print:bg-slate-100 print:text-slate-800">
+                          {contact?.role || 'Chính chủ'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`tel:${(contact?.phone || '0912 345 678').replace(/\s+/g, '')}`}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900 transition-colors print:text-slate-900"
+                        >
+                          <Phone className="w-3.5 h-3.5 text-blue-600 print:text-slate-700" />
+                          <span>{contact?.phone || '0912 345 678'}</span>
+                        </a>
+
+                        {contact?.zaloPhone && (
+                          <a
+                            href={`https://zalo.me/${contact.zaloPhone.replace(/\s+/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200 hover:bg-emerald-100 print:hidden"
+                          >
+                            <MessageCircle className="w-3 h-3" />
+                            <span>Zalo</span>
+                          </a>
+                        )}
+                      </div>
+
+                      {contact?.handoverOffer && (
+                        <div className="p-2 rounded-lg bg-emerald-50/70 border border-emerald-200/80 text-[11px] text-emerald-900 leading-snug print:bg-slate-50 print:border-slate-300 print:text-slate-800">
+                          <strong className="text-emerald-800 font-semibold print:text-slate-900">
+                            Ưu đãi bàn giao:{' '}
+                          </strong>
+                          {contact.handoverOffer}
+                        </div>
+                      )}
+
+                      <div className="text-[10px] text-slate-500 leading-tight pt-0.5">
+                        <span>Lịch xem: </span>
+                        <span className="text-slate-700 font-medium">
+                          {contact?.viewingAvailability || '8h - 18h các ngày trong tuần'}
+                        </span>
+                        {contact?.responseSpeed && (
+                          <span className="block text-slate-500 mt-0.5">
+                            Tốc độ phản hồi: {contact.responseSpeed}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+
               {/* ---------------------------------------------------- */}
               {/* GROUP 2: VỊ TRÍ & TIỆN ÍCH                         */}
               {/* ---------------------------------------------------- */}
@@ -704,12 +800,12 @@ export function ComparisonReportView() {
         {/* ======================================================== */}
         {/* 4. AI COMPARATIVE SYNTHESIS & EXECUTIVE RECOMMENDATION   */}
         {/* ======================================================== */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 print:break-inside-avoid">
           {/* Synthesis Cards */}
-          <div className="lg:col-span-2 p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+          <div className="lg:col-span-2 p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4 print:border-slate-300 print:shadow-none">
             <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700">
+                <div className="p-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 print:bg-slate-100 print:text-slate-800">
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
@@ -718,13 +814,13 @@ export function ComparisonReportView() {
                   </h2>
                   <p className="text-[11px] text-slate-500">
                     Phân tích đánh đổi (Trade-off) cho mô hình{' '}
-                    <strong className="text-blue-700">
+                    <strong className="text-blue-700 print:text-slate-900">
                       {BUSINESS_TYPE_META[selectedBusinessType]?.labelVi}
                     </strong>
                   </p>
                 </div>
               </div>
-              <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+              <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 print:border-slate-300 print:bg-slate-100 print:text-slate-800">
                 AI Synthesis
               </span>
             </div>
@@ -733,13 +829,13 @@ export function ComparisonReportView() {
               {evaluatedColumns.map(({ property, match, bi, budget }) => (
                 <div
                   key={property.id}
-                  className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5"
+                  className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 print:bg-white print:border-slate-300"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="text-xs font-bold text-slate-900">
                       [{property.code}] {property.title} ({property.district})
                     </div>
-                    <span className="text-[11px] font-semibold text-blue-700">
+                    <span className="text-[11px] font-semibold text-blue-700 print:text-slate-800">
                       Điểm: {Math.round(match.overallScore)}/100 • Setup + 6T thuê: ~
                       {formatVNDMillions(
                         budget.totalEstimateVND + property.monthlyRentMillionVND * 6 * 1_000_000
@@ -753,13 +849,27 @@ export function ComparisonReportView() {
                     {property.risksToSurvey[0] ||
                       'Cần kiểm tra kỹ hiện trạng kỹ thuật và hợp đồng thuê thực tế.'}
                   </p>
+                  <div className="text-[11px] text-slate-500 pt-1.5 border-t border-slate-200/60 flex items-center justify-between flex-wrap gap-1">
+                    <span>
+                      Đầu mối khảo sát:{' '}
+                      <strong className="text-slate-800">
+                        {property.contact?.name || 'Anh Minh'} ({property.contact?.phone || '0912 345 678'})
+                      </strong>{' '}
+                      • {property.contact?.role || 'Chính chủ'}
+                    </span>
+                    {property.contact?.handoverOffer && (
+                      <span className="text-emerald-700 font-medium text-[10px]">
+                        {property.contact.handoverOffer}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Strategic Choices Recommendation Card */}
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4 print:border-slate-300 print:shadow-none">
             <div className="space-y-3">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5 border-b border-slate-100 pb-2">
                 <Award className="w-4 h-4 text-amber-600" />

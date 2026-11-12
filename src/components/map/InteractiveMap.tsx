@@ -22,6 +22,8 @@ import {
   RotateCcw,
   Sliders,
   Info,
+  Phone,
+  MessageCircle,
 } from 'lucide-react';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { scorePropertyForIntent, BUSINESS_TYPE_META } from '@/lib/aiEngine';
@@ -1097,6 +1099,51 @@ export function InteractiveMap({ mode, filteredProperties, className = '' }: Int
                   </div>
                 </div>
               </div>
+
+              {/* Landlord Contact Quick Badge & Actions */}
+              {selectedProperty.contact && (
+                <div className="mb-3 p-2.5 rounded-xl bg-blue-50/70 border border-blue-200/80 flex items-center justify-between gap-2.5">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] font-bold text-blue-800 uppercase tracking-wide">
+                        {selectedProperty.contact.role || 'Chủ nhà'}
+                      </span>
+                      {selectedProperty.contact.responseSpeed && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          {selectedProperty.contact.responseSpeed}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs font-bold text-slate-900 truncate mt-0.5">
+                      {selectedProperty.contact.name}
+                    </div>
+                    <div className="text-[11px] font-mono text-slate-600">
+                      {selectedProperty.contact.phone}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <a
+                      href={`tel:${selectedProperty.contact.phone.replace(/\s+/g, '')}`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] transition-colors shadow-xs"
+                      title={`Gọi điện trực tiếp cho ${selectedProperty.contact.name}`}
+                    >
+                      <Phone className="w-3 h-3" />
+                      <span>Gọi ngay</span>
+                    </a>
+                    <a
+                      href={`https://zalo.me/${(selectedProperty.contact.zaloPhone || selectedProperty.contact.phone).replace(/\s+/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[11px] transition-colors shadow-xs"
+                      title={`Nhắn tin Zalo với ${selectedProperty.contact.name}`}
+                    >
+                      <MessageCircle className="w-3 h-3" />
+                      <span>Zalo</span>
+                    </a>
+                  </div>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-2">

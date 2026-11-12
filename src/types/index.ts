@@ -198,6 +198,16 @@ export interface MatchBreakdown {
   provenance: DataProvenance;
 }
 
+export interface LandlordContact {
+  name: string;
+  phone: string;
+  zaloPhone?: string;
+  role: 'Chính chủ' | 'Đại diện ủy quyền' | 'Quản lý tòa nhà';
+  responseSpeed: string; // e.g. "Phản hồi trong 15 phút"
+  viewingAvailability: string; // e.g. "Xem mặt bằng các ngày trong tuần (8h - 18h)"
+  handoverOffer?: string; // e.g. "Hỗ trợ 15 ngày setup miễn phí & bàn giao thô hoàn thiện"
+}
+
 export interface PropertyItem {
   id: string;
   code: string;
@@ -226,6 +236,7 @@ export interface PropertyItem {
   suitableBusinesses: BusinessType[];
   highlights: string[];
   risksToSurvey: string[];
+  contact: LandlordContact;
   floors: FloorSpec[];
   nearbyPOIs: POIItem[];
   defaultMatch?: MatchBreakdown;

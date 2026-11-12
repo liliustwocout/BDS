@@ -21,6 +21,9 @@ import {
   Info,
   ShieldAlert,
   ChevronRight,
+  Phone,
+  MessageCircle,
+  Clock,
 } from 'lucide-react';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { CameraMode, RoomGeometry, FloorSpec } from '@/types';
@@ -37,38 +40,24 @@ const CAMERA_MODES: {
 }[] = [
   {
     id: 'orbit',
-    label: 'Orbit 360°',
+    label: '3D Tự do (Orbit)',
     shortLabel: 'Orbit',
     desc: 'Xoay tự do quanh tòa nhà và bối cảnh đường phố',
     icon: Compass,
   },
   {
-    id: 'walkthrough',
-    label: 'Walkthrough',
-    shortLabel: 'Walkthrough',
-    desc: 'Tầm mắt người đi bộ bên trong không gian',
-    icon: Footprints,
-  },
-  {
     id: 'dollhouse',
-    label: 'Dollhouse',
+    label: 'Xem từng tầng (Dollhouse)',
     shortLabel: 'Dollhouse',
     desc: 'Mặt cắt phối cảnh bóc tách tầng',
     icon: Layers,
   },
   {
     id: 'floorplan',
-    label: 'Top-down',
+    label: 'Mặt bằng (Top-down)',
     shortLabel: 'Top-down',
     desc: 'Góc nhìn trực giao từ trên xuống',
     icon: LayoutGrid,
-  },
-  {
-    id: 'exterior',
-    label: 'Mặt tiền',
-    shortLabel: 'Mặt tiền',
-    desc: 'Góc nhìn trực diện mặt tiền từ lòng đường',
-    icon: Building2,
   },
 ];
 
@@ -210,109 +199,117 @@ export function DigitalTwinView() {
     <div className="relative flex h-[calc(100vh-3.5rem)] w-full overflow-hidden bg-slate-100 text-slate-900">
       {/* 80%+ HERO 3D / 2D VIEWPORT */}
       <div className="relative flex-1 flex flex-col h-full overflow-hidden">
-        {/* TOP FLOATING ARCHITECTURAL TOOLBAR (Clean Minimalist White Capsules) */}
-        <div className="pointer-events-none absolute top-3 left-3 right-3 z-20 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar pb-1">
-          {/* Camera Modes Pill */}
-          <div className="pointer-events-auto flex shrink-0 items-center gap-1 rounded-xl border border-slate-200/90 bg-white/90 p-1 shadow-sm backdrop-blur-md">
-            {CAMERA_MODES.map((mode) => {
-              const Icon = mode.icon;
-              const active = cameraMode === mode.id;
-              return (
-                <button
-                  key={mode.id}
-                  onClick={() => setCameraMode(mode.id)}
-                  title={mode.desc}
-                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
-                    active
-                      ? 'bg-slate-900 text-white font-semibold shadow-sm'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                  }`}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  <span className="hidden lg:inline">{mode.label}</span>
-                  <span className="lg:hidden">{mode.shortLabel}</span>
-                </button>
-              );
-            })}
-          </div>
+        {/* TOP FLOATING ARCHITECTURAL TOOLBAR (Single Compact Capsule) */}
+        <div className="pointer-events-none absolute top-3 left-0 right-0 z-20 flex justify-center px-3">
+          <div className="pointer-events-auto flex items-center gap-1.5 p-1 rounded-2xl border border-slate-200/90 bg-white/95 shadow-md backdrop-blur-md overflow-x-auto no-scrollbar">
+            {/* 3 Core Camera Modes */}
+            <div className="flex items-center gap-1">
+              {CAMERA_MODES.map((mode) => {
+                const Icon = mode.icon;
+                const active = cameraMode === mode.id;
+                return (
+                  <button
+                    key={mode.id}
+                    onClick={() => setCameraMode(mode.id)}
+                    title={mode.desc}
+                    className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
+                      active
+                        ? 'bg-slate-900 text-white font-semibold shadow-xs'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">{mode.label}</span>
+                    <span className="sm:hidden">{mode.shortLabel}</span>
+                  </button>
+                );
+              })}
+            </div>
 
-          {/* View Mode Switcher (3D Twin / 2D Blueprint / Split) */}
-          <div className="pointer-events-auto flex shrink-0 items-center gap-1 rounded-xl border border-slate-200/90 bg-white/90 p-1 shadow-sm backdrop-blur-md">
-            <button
-              onClick={() => setView2D3DMode('3d')}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                view2D3DMode === '3d'
-                  ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              <Box className="h-3.5 w-3.5" />
-              <span>3D Twin</span>
-            </button>
-            <button
-              onClick={() => setView2D3DMode('2d')}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                view2D3DMode === '2d'
-                  ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              <Maximize2 className="h-3.5 w-3.5" />
-              <span>2D Blueprint</span>
-            </button>
-            <button
-              onClick={() => setView2D3DMode('split')}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                view2D3DMode === 'split'
-                  ? 'bg-blue-600 text-white font-semibold shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              <Columns className="h-3.5 w-3.5" />
-              <span>Split 2D + 3D</span>
-            </button>
-          </div>
+            {/* Subtle Divider */}
+            <div className="h-4 w-px bg-slate-200 mx-0.5" />
 
-          {/* Feature Toggles & Reset Camera */}
-          <div className="pointer-events-auto flex shrink-0 items-center gap-1 rounded-xl border border-slate-200/90 bg-white/90 p-1 shadow-sm backdrop-blur-md">
-            <button
-              onClick={() => setShowFurniture(!showFurniture)}
-              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
-                showFurniture
-                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-              title="Bật/tắt hiển thị nội thất"
-            >
-              <Armchair className="h-3.5 w-3.5 text-slate-700" />
-              <span>Nội thất</span>
-            </button>
+            {/* View Mode Switcher (3D Twin / 2D Blueprint / Split) */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setView2D3DMode('3d')}
+                className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
+                  view2D3DMode === '3d'
+                    ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <Box className="h-3.5 w-3.5" />
+                <span>3D</span>
+              </button>
+              <button
+                onClick={() => setView2D3DMode('2d')}
+                className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
+                  view2D3DMode === '2d'
+                    ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+                <span>2D</span>
+              </button>
+              <button
+                onClick={() => setView2D3DMode('split')}
+                className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
+                  view2D3DMode === 'split'
+                    ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <Columns className="h-3.5 w-3.5" />
+                <span className="hidden md:inline">Chia đôi</span>
+              </button>
+            </div>
 
-            <button
-              onClick={() => setShowDimensions(!showDimensions)}
-              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
-                showDimensions
-                  ? 'bg-blue-50 text-blue-800 border border-blue-200'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-              title="Bật/tắt đường gióng kích thước (m)"
-            >
-              <Ruler className="h-3.5 w-3.5 text-slate-700" />
-              <span>Kích thước</span>
-            </button>
+            {/* Subtle Divider */}
+            <div className="h-4 w-px bg-slate-200 mx-0.5" />
 
-            <button
-              onClick={handleResetCamera}
-              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all"
-              title="Đặt lại góc nhìn camera"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Reset</span>
-            </button>
+            {/* Feature Toggles & Reset Camera */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setShowFurniture(!showFurniture)}
+                className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
+                  showFurniture
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+                title="Bật/tắt hiển thị nội thất"
+              >
+                <Armchair className="h-3.5 w-3.5 text-slate-700" />
+                <span className="hidden lg:inline">Nội thất</span>
+              </button>
+
+              <button
+                onClick={() => setShowDimensions(!showDimensions)}
+                className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
+                  showDimensions
+                    ? 'bg-blue-50 text-blue-800 border border-blue-200'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+                title="Bật/tắt đường gióng kích thước (m)"
+              >
+                <Ruler className="h-3.5 w-3.5 text-slate-700" />
+                <span className="hidden lg:inline">Kích thước</span>
+              </button>
+
+              <button
+                onClick={handleResetCamera}
+                className="flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all"
+                title="Đặt lại góc nhìn camera"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Reset</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* FLOATING BOTTOM BAR: FLOOR SELECTOR DOCK (Clean White Capsule) */}
+        {/* FLOATING BOTTOM BAR: FLOOR SELECTOR DOCK & LANDLORD CONTACT */}
         <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-3">
           {/* Horizontal Floor Selector: "Toàn bộ toà nhà", "Tầng 1", "Tầng 2", "Tầng 3" */}
           <div className="pointer-events-auto flex items-center gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-md backdrop-blur-md">
@@ -346,11 +343,41 @@ export function DigitalTwinView() {
             })}
           </div>
 
-          {/* Right Status Pill / Model Notice */}
-          <div className="pointer-events-auto hidden md:flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-1.5 text-xs text-slate-600 shadow-sm backdrop-blur-md">
-            <ShieldAlert className="h-3.5 w-3.5 text-slate-500" />
-            <span>Mô hình không gian 3D tương tác • Nhấp vào phòng để xem thông số chi tiết</span>
-          </div>
+          {/* Prominent Action: "Liên hệ chủ nhà xem thực tế" */}
+          {property.contact && (
+            <div className="pointer-events-auto flex items-center gap-2.5 rounded-2xl border border-slate-200/90 bg-white/95 px-3.5 py-1.5 shadow-md backdrop-blur-md">
+              <div className="hidden sm:block text-right">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                  Liên hệ xem thực tế ({property.contact.role})
+                </div>
+                <div className="text-xs font-bold text-slate-900">
+                  {property.contact.name} •{' '}
+                  <span className="font-mono text-blue-600">{property.contact.phone}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <a
+                  href={`tel:${property.contact.phone.replace(/\s+/g, '')}`}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                  title={`Gọi điện cho ${property.contact.name}`}
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Gọi chủ nhà</span>
+                  <span className="sm:hidden">Gọi</span>
+                </a>
+                <a
+                  href={`https://zalo.me/${(property.contact.zaloPhone || property.contact.phone).replace(/\s+/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                  title={`Nhắn tin Zalo với ${property.contact.name}`}
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>Zalo</span>
+                </a>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 3D / 2D VIEWPORT AREA */}
@@ -511,11 +538,64 @@ export function DigitalTwinView() {
             </div>
           </div>
 
-          {/* Bottom Action Footer with CTA */}
-          <div className="border-t border-slate-200 p-4 bg-slate-50/50 space-y-2">
+          {/* Bottom Action Footer with CTA & Prominent Landlord Contact */}
+          <div className="border-t border-slate-200 p-4 bg-slate-50/50 space-y-2.5">
+            {/* Prominent Landlord Contact Action in Room Inspector */}
+            {property.contact && (
+              <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200/90 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-800">
+                    Liên hệ chủ nhà xem thực tế
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-700">
+                    {property.contact.role}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-slate-900 truncate">
+                      {property.contact.name}
+                    </div>
+                    <div className="text-[11px] font-mono text-slate-600">
+                      {property.contact.phone}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <a
+                      href={`tel:${property.contact.phone.replace(/\s+/g, '')}`}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                      title={`Gọi điện cho ${property.contact.name}`}
+                    >
+                      <Phone className="w-3 h-3" />
+                      <span>Gọi ngay</span>
+                    </a>
+                    <a
+                      href={`https://zalo.me/${(property.contact.zaloPhone || property.contact.phone).replace(/\s+/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                      title={`Nhắn tin Zalo với ${property.contact.name}`}
+                    >
+                      <MessageCircle className="w-3 h-3" />
+                      <span>Zalo</span>
+                    </a>
+                  </div>
+                </div>
+
+                {property.contact.viewingAvailability && (
+                  <div className="text-[10px] text-slate-500 flex items-center gap-1 pt-1.5 border-t border-blue-100">
+                    <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                    <span className="truncate">{property.contact.viewingAvailability}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <button
               onClick={() => setActiveTab('studio')}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 transition-all"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 transition-all"
             >
               <Sparkles className="h-4 w-4 text-amber-400" />
               <span>Setup phòng này trong AI Studio</span>
@@ -523,7 +603,7 @@ export function DigitalTwinView() {
             </button>
             <button
               onClick={() => setSelectedRoomId(null)}
-              className="w-full text-center py-1.5 text-xs text-slate-500 hover:text-slate-800 transition-colors"
+              className="w-full text-center py-1 text-xs text-slate-500 hover:text-slate-800 transition-colors"
             >
               Đóng và tiếp tục xem toàn cảnh
             </button>

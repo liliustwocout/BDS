@@ -37,6 +37,12 @@ import {
   Check,
   Building2,
   Maximize2,
+  Phone,
+  MessageCircle,
+  SlidersHorizontal,
+  ChevronDown,
+  ChevronUp,
+  UserCheck,
 } from 'lucide-react';
 import {
   BusinessType,
@@ -258,6 +264,7 @@ export const BusinessSetupView: React.FC = () => {
 
   const [studioTab, setStudioTab] = useState<'concept' | 'furniture' | 'budget'>('concept');
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [showAdvancedTune, setShowAdvancedTune] = useState(false);
 
   const selectedProperty = useMemo(
     () => properties.find((p) => p.id === selectedPropertyId) || properties[0],
@@ -459,6 +466,12 @@ export const BusinessSetupView: React.FC = () => {
 
   const activeStyleMeta = DESIGN_STYLE_META[selectedDesignStyle];
   const activeBusinessMeta = BUSINESS_TYPE_META[selectedBusinessType];
+  const contactName = selectedProperty.contact?.name || 'Anh Minh';
+  const contactPhone = selectedProperty.contact?.phone || '0912 345 678';
+  const contactRole = selectedProperty.contact?.role || 'Chính chủ';
+  const handoverOffer =
+    selectedProperty.contact?.handoverOffer ||
+    'Hỗ trợ 15 ngày setup miễn phí & bàn giao thô hoàn thiện';
 
   return (
     <div className="flex h-[calc(100vh-4rem)] w-full flex-col lg:flex-row overflow-hidden bg-slate-100">
@@ -696,6 +709,21 @@ export const BusinessSetupView: React.FC = () => {
                 </div>
               </>
             )}
+
+            <div className="h-6 w-px bg-slate-200" />
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                Chủ nhà khảo sát
+              </div>
+              <a
+                href={`tel:${contactPhone.replace(/\s+/g, '')}`}
+                className="text-xs font-bold text-slate-900 hover:text-blue-700 flex items-center gap-1 transition-colors"
+                title="Gọi liên hệ chủ nhà"
+              >
+                <Phone className="h-3 w-3 text-emerald-600" />
+                <span>{contactName} ({contactPhone})</span>
+              </a>
+            </div>
           </div>
 
           {/* Quick Transform Nudge Controls for Selected Furniture */}
@@ -802,8 +830,8 @@ export const BusinessSetupView: React.FC = () => {
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Palette className="h-3.5 w-3.5 text-blue-600" />
-              <span>Bố trí & Style</span>
+              <Palette className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+              <span className="truncate">1. Mô hình & Style</span>
             </button>
             <button
               type="button"
@@ -814,8 +842,8 @@ export const BusinessSetupView: React.FC = () => {
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Armchair className="h-3.5 w-3.5 text-blue-600" />
-              <span>Nội thất ({effectiveVisibleFurniture.length})</span>
+              <Armchair className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+              <span className="truncate">2. Xem 3D & Nội thất</span>
             </button>
             <button
               type="button"
@@ -826,8 +854,8 @@ export const BusinessSetupView: React.FC = () => {
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Calculator className="h-3.5 w-3.5 text-blue-600" />
-              <span>Dự toán & Pháp lý</span>
+              <Calculator className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+              <span className="truncate">3. Dự toán & Chủ nhà</span>
             </button>
           </div>
         </div>
@@ -844,7 +872,7 @@ export const BusinessSetupView: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">
-                      Bước 1 / 4
+                      Bước 1 / 3 • Mô hình kinh doanh
                     </span>
                     <h2 className="text-xs font-bold text-slate-900">
                       Chọn Mô Hình Kinh Doanh (8 Ngành Nghề)
@@ -916,7 +944,7 @@ export const BusinessSetupView: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">
-                      Bước 2a / 4
+                      Bước 1 / 3 • Phương án mặt bằng
                     </span>
                     <h2 className="text-xs font-bold text-slate-900">
                       Phương Án Bố Trí Mặt Bằng (AI Layout Presets)
@@ -991,7 +1019,7 @@ export const BusinessSetupView: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">
-                      Bước 2b / 4
+                      Bước 1 / 3 • Phong cách thiết kế
                     </span>
                     <h2 className="text-xs font-bold text-slate-900">
                       Phong Cách Thiết Kế (Design Style)
@@ -1073,7 +1101,7 @@ export const BusinessSetupView: React.FC = () => {
                 onClick={() => setStudioTab('furniture')}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors shadow-xs"
               >
-                <span>Tiếp tục: Tinh chỉnh Nội Thất</span>
+                <span>Tiếp tục: Bước 2 - Xem 3D & Danh Mục Nội Thất</span>
                 <ChevronRight className="h-4 w-4" />
               </button>
             </>
@@ -1089,7 +1117,7 @@ export const BusinessSetupView: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">
-                      Bước 3 / 4
+                      Bước 2 / 3 • Phân loại nội thất
                     </span>
                     <h2 className="text-xs font-bold text-slate-900">
                       Bật / Tắt Nhóm Hạng Mục
@@ -1229,101 +1257,10 @@ export const BusinessSetupView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Position X / Z Sliders */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <div className="flex justify-between text-[11px] mb-1">
-                        <span className="text-slate-600 flex items-center gap-1 font-medium">
-                          <Move className="h-3 w-3 text-blue-600" /> Tọa độ ngang (X)
-                        </span>
-                        <span className="font-mono text-blue-700 font-bold">
-                          {selectedFurniture.position[0].toFixed(2)}m
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min={0.4}
-                        max={Math.max(selectedProperty.buildingWidth - 0.4, 2)}
-                        step={0.1}
-                        value={selectedFurniture.position[0]}
-                        onChange={(e) =>
-                          updateFurnitureItem(selectedFurniture.id, {
-                            position: [
-                              parseFloat(e.target.value),
-                              selectedFurniture.position[1],
-                              selectedFurniture.position[2],
-                            ],
-                          })
-                        }
-                        className="w-full"
-                      />
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between text-[11px] mb-1">
-                        <span className="text-slate-600 flex items-center gap-1 font-medium">
-                          <Move className="h-3 w-3 text-blue-600" /> Tọa độ sâu (Z)
-                        </span>
-                        <span className="font-mono text-blue-700 font-bold">
-                          {selectedFurniture.position[2].toFixed(2)}m
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min={0.4}
-                        max={Math.max(selectedProperty.buildingDepth - 0.4, 2)}
-                        step={0.1}
-                        value={selectedFurniture.position[2]}
-                        onChange={(e) =>
-                          updateFurnitureItem(selectedFurniture.id, {
-                            position: [
-                              selectedFurniture.position[0],
-                              selectedFurniture.position[1],
-                              parseFloat(e.target.value),
-                            ],
-                          })
-                        }
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Rotation Angle Buttons */}
-                  <div>
-                    <div className="flex items-center justify-between text-[11px] mb-1.5">
-                      <span className="text-slate-600 flex items-center gap-1 font-medium">
-                        <RotateCw className="h-3 w-3 text-blue-600" /> Góc xoay (Rotation)
-                      </span>
-                      <span className="font-mono text-blue-700 font-bold">
-                        {selectedFurniture.rotation}°
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {[0, 45, 90, 180, 270].map((angle) => (
-                        <button
-                          key={angle}
-                          type="button"
-                          onClick={() =>
-                            updateFurnitureItem(selectedFurniture.id, {
-                              rotation: angle,
-                            })
-                          }
-                          className={`rounded-lg px-2 py-1 font-mono text-[10px] border transition-colors ${
-                            selectedFurniture.rotation === angle
-                              ? 'border-blue-600 bg-blue-600 text-white font-bold'
-                              : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                          }`}
-                        >
-                          {angle}°
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* Floor Placement Level */}
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-blue-100">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-[11px] text-slate-600 font-medium">
-                      Bố trí tại:
+                      Bố trí tại tầng:
                     </span>
                     <div className="flex items-center gap-1">
                       {selectedProperty.floors.map((fl) => (
@@ -1346,6 +1283,120 @@ export const BusinessSetupView: React.FC = () => {
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Collapsible Fine-Tuning Section: Tùy chỉnh nâng cao */}
+                  <div className="rounded-xl border border-blue-200/80 bg-white overflow-hidden shadow-xs">
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvancedTune((prev) => !prev)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <SlidersHorizontal className="h-3.5 w-3.5 text-blue-600" />
+                        <span>Tùy chỉnh nâng cao (Tọa độ X/Z & Góc xoay)</span>
+                      </div>
+                      {showAdvancedTune ? (
+                        <ChevronUp className="h-4 w-4 text-slate-500" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-slate-500" />
+                      )}
+                    </button>
+
+                    {showAdvancedTune && (
+                      <div className="p-3 space-y-3 border-t border-slate-200 bg-slate-50/40">
+                        {/* Position X / Z Sliders */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <div className="flex justify-between text-[11px] mb-1">
+                              <span className="text-slate-600 flex items-center gap-1 font-medium">
+                                <Move className="h-3 w-3 text-blue-600" /> Tọa độ ngang (X)
+                              </span>
+                              <span className="font-mono text-blue-700 font-bold">
+                                {selectedFurniture.position[0].toFixed(2)}m
+                              </span>
+                            </div>
+                            <input
+                              type="range"
+                              min={0.4}
+                              max={Math.max(selectedProperty.buildingWidth - 0.4, 2)}
+                              step={0.1}
+                              value={selectedFurniture.position[0]}
+                              onChange={(e) =>
+                                updateFurnitureItem(selectedFurniture.id, {
+                                  position: [
+                                    parseFloat(e.target.value),
+                                    selectedFurniture.position[1],
+                                    selectedFurniture.position[2],
+                                  ],
+                                })
+                              }
+                              className="w-full"
+                            />
+                          </div>
+
+                          <div>
+                            <div className="flex justify-between text-[11px] mb-1">
+                              <span className="text-slate-600 flex items-center gap-1 font-medium">
+                                <Move className="h-3 w-3 text-blue-600" /> Tọa độ sâu (Z)
+                              </span>
+                              <span className="font-mono text-blue-700 font-bold">
+                                {selectedFurniture.position[2].toFixed(2)}m
+                              </span>
+                            </div>
+                            <input
+                              type="range"
+                              min={0.4}
+                              max={Math.max(selectedProperty.buildingDepth - 0.4, 2)}
+                              step={0.1}
+                              value={selectedFurniture.position[2]}
+                              onChange={(e) =>
+                                updateFurnitureItem(selectedFurniture.id, {
+                                  position: [
+                                    selectedFurniture.position[0],
+                                    selectedFurniture.position[1],
+                                    parseFloat(e.target.value),
+                                  ],
+                                })
+                              }
+                              className="w-full"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Rotation Angle Buttons */}
+                        <div>
+                          <div className="flex items-center justify-between text-[11px] mb-1.5">
+                            <span className="text-slate-600 flex items-center gap-1 font-medium">
+                              <RotateCw className="h-3 w-3 text-blue-600" /> Góc xoay (Rotation)
+                            </span>
+                            <span className="font-mono text-blue-700 font-bold">
+                              {selectedFurniture.rotation}°
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {[0, 45, 90, 180, 270].map((angle) => (
+                              <button
+                                key={angle}
+                                type="button"
+                                onClick={() =>
+                                  updateFurnitureItem(selectedFurniture.id, {
+                                    rotation: angle,
+                                  })
+                                }
+                                className={`rounded-lg px-2 py-1 font-mono text-[10px] border transition-colors ${
+                                  selectedFurniture.rotation === angle
+                                    ? 'border-blue-600 bg-blue-600 text-white font-bold'
+                                    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                                }`}
+                              >
+                                {angle}°
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </section>
               ) : (
@@ -1431,23 +1482,72 @@ export const BusinessSetupView: React.FC = () => {
                 onClick={() => setStudioTab('budget')}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors shadow-xs"
               >
-                <span>Tiếp tục: Bảng Dự Toán Chi Phí & Pháp Lý</span>
+                <span>Tiếp tục: Bước 3 - Dự Toán Tổng & Liên Hệ Chủ Nhà</span>
                 <ChevronRight className="h-4 w-4" />
               </button>
             </>
           )}
 
           {/* ==================================================== */}
-          {/* TAB 3: DỰ TOÁN ĐẦU TƯ & PHÁP LÝ (Step 4 & Regulatory)  */}
+          {/* TAB 3: 3. DỰ TOÁN TỔNG & LIÊN HỆ CHỦ NHÀ              */}
           {/* ==================================================== */}
           {studioTab === 'budget' && budgetSummary && (
             <>
-              {/* Step 4: Total Summary Card */}
+              {/* Owner Contact & Renovation Agreement Banner */}
+              <section className="rounded-2xl border-2 border-blue-500/30 bg-gradient-to-br from-blue-50/90 via-sky-50/30 to-white p-4 shadow-xs space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="rounded-md bg-blue-600 text-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-xs">
+                        {contactRole} • Kết Nối Trực Tiếp
+                      </span>
+                      <span className="text-[11px] font-medium text-slate-500">
+                        {selectedProperty.contact?.responseSpeed || 'Phản hồi trong 15 phút'}
+                      </span>
+                    </div>
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 leading-snug">
+                      Trao đổi phương án cải tạo & xin phép sửa chữa với chủ nhà ({contactName} - {contactPhone})
+                    </h3>
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                      {selectedProperty.contact?.handoverOffer ||
+                        'Hỗ trợ 15 ngày setup miễn phí & bàn giao thô hoàn thiện, tạo điều kiện thuận lợi thẩm duyệt cải tạo.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <a
+                    href={`tel:${contactPhone.replace(/\s+/g, '')}`}
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 py-2.5 px-3 text-xs font-bold text-white transition-colors shadow-xs"
+                  >
+                    <Phone className="h-3.5 w-3.5" />
+                    <span>Gọi {contactPhone}</span>
+                  </a>
+                  <a
+                    href={`https://zalo.me/${(selectedProperty.contact?.zaloPhone || contactPhone).replace(/\s+/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-2.5 px-3 text-xs font-bold text-white transition-colors shadow-xs"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    <span>Nhắn Zalo</span>
+                  </a>
+                </div>
+
+                <div className="flex items-center justify-between text-[10px] text-slate-500 pt-2 border-t border-blue-100/80">
+                  <span>Khung giờ xem mặt bằng:</span>
+                  <span className="font-semibold text-slate-700">
+                    {selectedProperty.contact?.viewingAvailability || 'Các ngày trong tuần (8h - 18h)'}
+                  </span>
+                </div>
+              </section>
+
+              {/* Step 3: Total Summary Card */}
               <section className="space-y-4">
                 <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50/70 via-white to-slate-50 p-4 shadow-xs">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
-                      Bước 4 / 4 • Tổng Dự Toán Chi Phí Setup
+                      Bước 3 / 3 • Tổng Dự Toán Chi Phí Setup
                     </span>
                     <span className="rounded bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
                       AI Estimate
