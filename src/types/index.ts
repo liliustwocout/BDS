@@ -7,6 +7,26 @@ export type ActiveTab =
   | 'studio'
   | 'comparison';
 
+export const TAB_ROUTES: Record<ActiveTab, string> = {
+  landing: '/',
+  discovery: '/discovery',
+  location: '/location',
+  twin: '/twin',
+  environment: '/environment',
+  studio: '/studio',
+  comparison: '/comparison',
+};
+
+export const ROUTE_TO_TAB: Record<string, ActiveTab> = {
+  '/': 'landing',
+  '/discovery': 'discovery',
+  '/location': 'location',
+  '/twin': 'twin',
+  '/environment': 'environment',
+  '/studio': 'studio',
+  '/comparison': 'comparison',
+};
+
 export type DataProvenance = 'verified' | 'demo' | 'ai_estimate' | 'user_input';
 
 export type BusinessType =

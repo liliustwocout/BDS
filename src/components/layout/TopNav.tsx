@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Compass,
   MapPin,
@@ -22,7 +23,7 @@ import {
   Menu,
   HelpCircle,
 } from 'lucide-react';
-import { ActiveTab, BusinessType } from '@/types';
+import { ActiveTab, BusinessType, TAB_ROUTES } from '@/types';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { BUSINESS_TYPE_META } from '@/lib/aiEngine';
 
@@ -143,8 +144,8 @@ export const TopNav: React.FC = () => {
         <div className="mx-auto flex h-full max-w-[1920px] items-center justify-between gap-2 px-3 lg:px-6">
           {/* Left: Brand Identity + Active Property Switcher */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setActiveTab('landing')}
+            <Link
+              href="/"
               className="group flex items-center gap-2.5 text-left focus:outline-none"
               title="Về Trang chủ SpaceVision"
             >
@@ -164,7 +165,7 @@ export const TopNav: React.FC = () => {
                   Commercial Real Estate
                 </p>
               </div>
-            </button>
+            </Link>
 
             <div className="hidden h-6 w-[1px] bg-slate-200 md:block" />
 
@@ -267,9 +268,9 @@ export const TopNav: React.FC = () => {
               const isComparison = tab.id === 'comparison';
 
               return (
-                <button
+                <Link
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  href={TAB_ROUTES[tab.id]}
                   title={`${tab.label} (${tab.shortcut}) — ${tab.description}`}
                   className={`group relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors whitespace-nowrap ${
                     isActive
@@ -295,20 +296,20 @@ export const TopNav: React.FC = () => {
                       {comparedPropertyIds.length}
                     </span>
                   )}
-                </button>
+                </Link>
               );
             })}
           </nav>
 
-          {/* Right: Help Trigger & Mobile Menu Button (Minimalist, No Clutter) */}
+          {/* Right: Help Trigger & Mobile Menu Button */}
           <div className="flex items-center gap-2">
             {/* Interactive Onboarding Guide & Help Trigger */}
             <button
               onClick={() => openOnboardingGuide()}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-sm font-bold text-slate-800 transition hover:bg-slate-50 hover:text-slate-900 shadow-xs"
-              title="Xem hướng dẫn sử dụng từng bước (Dành cho người mới)"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-sm font-bold text-slate-800 transition hover:bg-slate-50 hover:text-slate-900 shadow-xs cursor-pointer"
+              title={`Xem hướng dẫn sử dụng từng bước cho ${NAV_TABS.find((t) => t.id === activeTab)?.label || 'trang này'}`}
             >
-              <HelpCircle className="h-4 w-4 text-slate-600" />
+              <HelpCircle className="h-4 w-4 text-blue-600" />
               <span>Hướng dẫn</span>
             </button>
 
@@ -332,12 +333,10 @@ export const TopNav: React.FC = () => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
                 return (
-                  <button
+                  <Link
                     key={tab.id}
-                    onClick={() => {
-                      setActiveTab(tab.id);
-                      setMobileMenuOpen(false);
-                    }}
+                    href={TAB_ROUTES[tab.id]}
+                    onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center gap-2 rounded-lg p-2 text-left text-xs transition ${
                       isActive
                         ? 'bg-slate-900 text-white font-bold'
@@ -346,7 +345,7 @@ export const TopNav: React.FC = () => {
                   >
                     <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-600'}`} />
                     <span className="truncate">{tab.label}</span>
-                  </button>
+                  </Link>
                 );
               })}
             </div>

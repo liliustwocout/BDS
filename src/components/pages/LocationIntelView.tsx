@@ -596,7 +596,7 @@ export function LocationIntelView() {
                 </span>
               </div>
 
-              <div className="space-y-2.5">
+              <div id="tour-map-poi-filters" className="space-y-2.5">
                 {POI_BUCKETS.map((bucket) => {
                   const bucketPOICount = bucket.categories.reduce(
                     (sum, cat) => sum + (categoryCounts[cat] || 0),

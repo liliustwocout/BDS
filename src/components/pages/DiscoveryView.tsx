@@ -175,7 +175,7 @@ export function DiscoveryView() {
           </div>
 
           {/* Natural Language Search Input */}
-          <form onSubmit={handleSearchSubmit} className="space-y-2">
+          <form id="tour-disc-search" onSubmit={handleSearchSubmit} className="space-y-2">
             <div className="relative">
               <textarea
                 rows={2}
@@ -277,7 +277,7 @@ export function DiscoveryView() {
           )}
 
           {/* Filter Controls Toggle & Form */}
-          <div>
+          <div id="tour-disc-filters">
             <button
               type="button"
               onClick={() => setShowFilters((v) => !v)}
@@ -407,7 +407,7 @@ export function DiscoveryView() {
               </button>
             </div>
           ) : (
-            scoredAndFilteredProperties.map(({ property, match }) => {
+            scoredAndFilteredProperties.map(({ property, match }, propIdx) => {
               const isSelected = property.id === selectedPropertyId;
               const isCompared = comparedPropertyIds.includes(property.id);
               const isExpanded = expandedCardId === property.id || isSelected;
@@ -431,6 +431,7 @@ export function DiscoveryView() {
               return (
                 <div
                   key={property.id}
+                  id={propIdx === 0 ? 'tour-disc-card' : undefined}
                   onClick={() => {
                     selectProperty(property.id);
                     setExpandedCardId(property.id);
@@ -620,7 +621,10 @@ export function DiscoveryView() {
                   )}
 
                   {/* Actions Footer */}
-                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  <div
+                    id={propIdx === 0 ? 'tour-disc-actions' : undefined}
+                    className="mt-3 flex flex-wrap items-center gap-1.5"
+                  >
                     <button
                       type="button"
                       onClick={(e) => {

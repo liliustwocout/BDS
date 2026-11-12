@@ -203,7 +203,7 @@ export function DigitalTwinView() {
         <div className="pointer-events-none absolute top-3 left-0 right-0 z-20 flex justify-center px-3">
           <div className="pointer-events-auto flex items-center gap-1.5 p-1 rounded-2xl border border-slate-200/90 bg-white/95 shadow-md backdrop-blur-md overflow-x-auto no-scrollbar">
             {/* View Mode Switcher (3D Dollhouse / 2D / Split) */}
-            <div className="flex items-center gap-1">
+            <div id="tour-twin-mode" className="flex items-center gap-1">
               <button
                 onClick={() => setView2D3DMode('3d')}
                 className={`flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
@@ -283,6 +283,7 @@ export function DigitalTwinView() {
                   </button>
 
                   <button
+                    id="tour-twin-dimensions"
                     onClick={() => setShowDimensions(!showDimensions)}
                     className={`flex items-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium transition-all ${
                       showDimensions
@@ -310,7 +311,10 @@ export function DigitalTwinView() {
         {/* FLOATING BOTTOM BAR: FLOOR SELECTOR DOCK & LANDLORD CONTACT */}
         <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-3">
           {/* Horizontal Floor Selector: "Toàn bộ toà nhà", "Tầng 1", "Tầng 2", "Tầng 3" */}
-          <div className="pointer-events-auto flex items-center gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-md backdrop-blur-md">
+          <div
+            id="tour-twin-floor"
+            className="pointer-events-auto flex items-center gap-1.5 rounded-2xl border border-slate-200/90 bg-white/95 p-1.5 shadow-md backdrop-blur-md"
+          >
             <button
               onClick={() => setSelectedFloor('all')}
               className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold transition-all ${
@@ -379,7 +383,7 @@ export function DigitalTwinView() {
         </div>
 
         {/* 3D / 2D VIEWPORT AREA */}
-        <div className="relative flex-1 w-full h-full flex overflow-hidden">
+        <div id="tour-twin-canvas" className="relative flex-1 w-full h-full flex overflow-hidden">
           {view2D3DMode === '3d' && (
             <div className="relative w-full h-full">
               <BuildingDigitalTwin

@@ -16,88 +16,9 @@ import {
 } from 'lucide-react';
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 
+import { PAGE_TOUR_CONFIG, TourStep } from './tourConfig';
+
 const STORAGE_KEY = 'spacevision_onboarding_dismissed';
-
-interface TourStep {
-  id: string;
-  stepNumber: number;
-  totalSteps: number;
-  selector: string;
-  badge: string;
-  title: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  preferredPlacement: 'top' | 'bottom';
-  padding: number;
-}
-
-const TOUR_STEPS: TourStep[] = [
-  {
-    id: 'search-input',
-    stepNumber: 1,
-    totalSteps: 5,
-    selector: '#tour-search-input',
-    badge: 'Bước 1/5 • AI Intent',
-    title: 'Tìm kiếm bằng ý tưởng kinh doanh',
-    description:
-      'Gõ nhu cầu thực tế bằng ngôn ngữ tự nhiên (VD: "Tìm quán cafe acoustic Cầu Giấy dưới 30 triệu"). AI sẽ tự động phân tích ngành nghề, quận và ngân sách.',
-    icon: Search,
-    preferredPlacement: 'bottom',
-    padding: 8,
-  },
-  {
-    id: 'search-cta',
-    stepNumber: 2,
-    totalSteps: 5,
-    selector: '#tour-search-cta',
-    badge: 'Bước 2/5 • Bộ lọc & Chấm điểm',
-    title: 'Bộ lọc nhanh & Nút Đề xuất AI',
-    description:
-      'Chọn nhanh mô hình kinh doanh, quận trung tâm hoặc mức giá, sau đó bấm "Tìm kiếm & Đề xuất AI" để hệ thống chấm điểm mức độ phù hợp (% Match).',
-    icon: Filter,
-    preferredPlacement: 'bottom',
-    padding: 8,
-  },
-  {
-    id: 'property-card',
-    stepNumber: 3,
-    totalSteps: 5,
-    selector: '#tour-property-card',
-    badge: 'Bước 3/5 • Mặt bằng thực tế',
-    title: 'Thẻ mặt bằng & 4 chỉ số cốt lõi',
-    description:
-      'Mỗi mặt bằng hiển thị 4 chỉ số quan trọng nhất: Giá thuê (triệu/tháng), Diện tích (m²), Mặt tiền (m) và Số tầng, giúp bạn nắm bắt nhanh hiện trạng.',
-    icon: Building2,
-    preferredPlacement: 'bottom',
-    padding: 8,
-  },
-  {
-    id: 'landlord-contact',
-    stepNumber: 4,
-    totalSteps: 5,
-    selector: '#tour-landlord-contact',
-    badge: 'Bước 4/5 • Liên hệ chính chủ',
-    title: 'Kết nối Chủ nhà & Đặt lịch hẹn xem',
-    description:
-      'Gọi hotline trực tiếp, chat Zalo 1 chạm hoặc đặt lịch hẹn khảo sát thực địa với chủ nhà hoặc ban quản lý toà nhà mà không qua môi giới trung gian.',
-    icon: PhoneCall,
-    preferredPlacement: 'top',
-    padding: 6,
-  },
-  {
-    id: '3d-actions',
-    stepNumber: 5,
-    totalSteps: 5,
-    selector: '#tour-3d-actions',
-    badge: 'Bước 5/5 • Khảo sát 3D',
-    title: 'Khảo sát Bản đồ 3D & Không gian 3D Twin',
-    description:
-      'Bấm "Bản đồ 3D" để xem khối toà nhà lập thể và tiện ích quy hoạch; hoặc "Không gian 3D" để bóc tách từng tầng (Dollhouse) và đo kích thước phòng.',
-    icon: Box,
-    preferredPlacement: 'top',
-    padding: 6,
-  },
-];
 
 interface ElementRect {
   top: number;
@@ -111,20 +32,22 @@ export function InteractiveSpotlightTour() {
     showOnboardingGuide,
     closeOnboardingGuide,
     activeTab,
-    setActiveTab,
   } = useSpaceVisionStore();
+
+  const currentTourMeta = PAGE_TOUR_CONFIG[activeTab] || PAGE_TOUR_CONFIG.landing;
+  const tourSteps = currentTourMeta.steps;
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<ElementRect | null>(null);
   const [tooltipHeight, setTooltipHeight] = useState(250);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
-  // If tour is triggered but user is on another tab, switch to 'landing' first
+  // Reset step index whenever tour opens or tab changes
   useEffect(() => {
-    if (showOnboardingGuide && activeTab !== 'landing') {
-      setActiveTab('landing');
+    if (showOnboardingGuide) {
+      setCurrentStepIndex(0);
     }
-  }, [showOnboardingGuide, activeTab, setActiveTab]);
+  }, [showOnboardingGuide, activeTab]);
 
   // Dynamically measure actual tooltip height
   useLayoutEffect(() => {
@@ -139,7 +62,7 @@ export function InteractiveSpotlightTour() {
   // Measure target element position smoothly
   const updateSpotlightPosition = useCallback(() => {
     if (!showOnboardingGuide) return;
-    const step = TOUR_STEPS[currentStepIndex];
+    const step = tourSteps[currentStepIndex];
     if (!step) return;
 
     const el = document.querySelector(step.selector);
@@ -166,13 +89,13 @@ export function InteractiveSpotlightTour() {
       width: rect.width,
       height: rect.height,
     });
-  }, [showOnboardingGuide, currentStepIndex]);
+  }, [showOnboardingGuide, currentStepIndex, tourSteps]);
 
   // On step change or window scroll/resize, smoothly scroll target and update coordinates
   useEffect(() => {
     if (!showOnboardingGuide) return;
 
-    const step = TOUR_STEPS[currentStepIndex];
+    const step = tourSteps[currentStepIndex];
     if (!step) return;
 
     const timer = setTimeout(() => {
@@ -245,13 +168,14 @@ export function InteractiveSpotlightTour() {
 
   const handleSkip = useCallback(() => {
     if (typeof window !== 'undefined') {
+      localStorage.setItem('spacevision_tour_seen_' + activeTab, 'true');
       localStorage.setItem(STORAGE_KEY, 'true');
     }
     closeOnboardingGuide();
-  }, [closeOnboardingGuide]);
+  }, [closeOnboardingGuide, activeTab]);
 
   const handleNext = () => {
-    if (currentStepIndex < TOUR_STEPS.length - 1) {
+    if (currentStepIndex < tourSteps.length - 1) {
       setCurrentStepIndex((prev) => prev + 1);
     } else {
       handleSkip();
@@ -266,10 +190,12 @@ export function InteractiveSpotlightTour() {
 
   if (!showOnboardingGuide) return null;
 
-  const currentStep = TOUR_STEPS[currentStepIndex];
+  const currentStep = tourSteps[currentStepIndex];
+  if (!currentStep) return null;
+
   const StepIcon = currentStep.icon;
   const isFirstStep = currentStepIndex === 0;
-  const isLastStep = currentStepIndex === TOUR_STEPS.length - 1;
+  const isLastStep = currentStepIndex === tourSteps.length - 1;
   const padding = currentStep.padding || 8;
 
   // Exact Clearance Geometry: Guarantees tooltip NEVER overlaps the highlighted target
@@ -468,7 +394,7 @@ export function InteractiveSpotlightTour() {
         <div className="flex items-center justify-between pt-3 border-t border-slate-100 gap-2">
           {/* Progress Dots */}
           <div className="flex items-center gap-1.5">
-            {TOUR_STEPS.map((step, idx) => (
+            {tourSteps.map((step, idx) => (
               <button
                 key={step.id}
                 onClick={() => setCurrentStepIndex(idx)}

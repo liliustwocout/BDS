@@ -237,7 +237,10 @@ export function EnvironmentSimView() {
         {/* TOP FLOATING CONTROLS: WEATHER + SEASON + AUTO LIGHTS */}
         <div className="pointer-events-none absolute top-3 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-2">
           {/* Weather Selector */}
-          <div className="pointer-events-auto flex items-center gap-1 rounded-xl border border-slate-200/90 bg-white/90 p-1 shadow-sm backdrop-blur-md">
+          <div
+            id="tour-env-weather"
+            className="pointer-events-auto flex items-center gap-1 rounded-xl border border-slate-200/90 bg-white/90 p-1 shadow-sm backdrop-blur-md"
+          >
             {WEATHER_OPTIONS.map((w) => {
               const Icon = w.icon;
               const active = weatherMode === w.id;
@@ -314,7 +317,7 @@ export function EnvironmentSimView() {
         </div>
 
         {/* 3D SCENE CANVAS */}
-        <div className="relative flex-1 w-full h-full">
+        <div id="tour-env-compass" className="relative flex-1 w-full h-full">
           <BuildingDigitalTwin
             property={property}
             mode="environment"
@@ -324,7 +327,10 @@ export function EnvironmentSimView() {
 
         {/* BOTTOM TIMELINE SCRUBBER (Clean Minimalist White Card) */}
         <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-20 flex justify-center">
-          <div className="pointer-events-auto w-full max-w-4xl rounded-2xl border border-slate-200/90 bg-white/95 p-3.5 shadow-lg backdrop-blur-md">
+          <div
+            id="tour-env-solar-slider"
+            className="pointer-events-auto w-full max-w-4xl rounded-2xl border border-slate-200/90 bg-white/95 p-3.5 shadow-lg backdrop-blur-md"
+          >
             <div className="flex flex-wrap items-center justify-between gap-3 mb-2.5">
               {/* Play / Pause & Time Readout */}
               <div className="flex items-center gap-3">
@@ -418,7 +424,10 @@ export function EnvironmentSimView() {
 
       {/* RIGHT COMPACT SUNLIGHT & BUSINESS ANALYSIS CARD */}
       {panelOpen && (
-        <aside className="absolute inset-y-0 right-0 sm:relative w-full sm:w-[370px] lg:w-[410px] shrink-0 border-l border-slate-200 bg-white flex flex-col h-full shadow-xl overflow-y-auto z-30 animate-in slide-in-from-right duration-200">
+        <aside
+          id="tour-env-metrics"
+          className="absolute inset-y-0 right-0 sm:relative w-full sm:w-[370px] lg:w-[410px] shrink-0 border-l border-slate-200 bg-white flex flex-col h-full shadow-xl overflow-y-auto z-30 animate-in slide-in-from-right duration-200"
+        >
           {/* Header */}
           <div className="border-b border-slate-200 p-4">
             <div className="flex items-center justify-between gap-2 mb-1">

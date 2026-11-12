@@ -846,6 +846,7 @@ export const BusinessSetupView: React.FC = () => {
               <span className="truncate">2. Xem 3D & Nội thất</span>
             </button>
             <button
+              id="tour-studio-budget"
               type="button"
               onClick={() => setStudioTab('budget')}
               className={`flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all ${
@@ -883,7 +884,7 @@ export const BusinessSetupView: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div id="tour-studio-business" className="grid grid-cols-2 gap-2">
                   {(Object.keys(BUSINESS_TYPE_META) as BusinessType[]).map(
                     (bType) => {
                       const meta = BUSINESS_TYPE_META[bType];
@@ -1030,7 +1031,7 @@ export const BusinessSetupView: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div id="tour-studio-style" className="grid grid-cols-2 gap-2">
                   {(Object.keys(DESIGN_STYLE_META) as DesignStyle[]).map(
                     (styleKey) => {
                       const sMeta = DESIGN_STYLE_META[styleKey];
@@ -1693,6 +1694,7 @@ export const BusinessSetupView: React.FC = () => {
 
                 {/* Forward to Comparison Page CTA */}
                 <button
+                  id="tour-studio-export"
                   type="button"
                   onClick={() => setActiveTab('comparison')}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-xs font-bold text-white hover:bg-blue-700 transition-colors shadow-sm"

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { AppLayout } from '@/components/layout/AppLayout';
 
 export const metadata: Metadata = {
   title: 'SpaceVision — Bất động sản thương mại & Không gian kinh doanh 3D',
@@ -31,7 +32,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-slate-50 text-slate-900 antialiased selection:bg-sky-500/20 selection:text-sky-900">
-        {children}
+        <AppLayout>{children}</AppLayout>
       </body>
     </html>
   );

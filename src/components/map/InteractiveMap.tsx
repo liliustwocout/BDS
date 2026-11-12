@@ -1108,6 +1108,7 @@ export function InteractiveMap({
         {/* 3D Buildings & Tilt Controls */}
         <div className="flex items-center bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg p-1 shadow-sm">
           <button
+            id="tour-map-3d-toggle"
             type="button"
             onClick={handleToggle3D}
             title={is3DActive ? 'Chuyển sang bản đồ phẳng 2D (Góc nhìn từ trên xuống)' : 'Chuyển sang góc nhìn nghiêng 3D Toà Nhà'}
@@ -1167,6 +1168,7 @@ export function InteractiveMap({
         {/* Navigation & Catchment Actions */}
         <div className="flex items-center gap-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg p-1 shadow-sm">
           <button
+            id="tour-map-recenter"
             type="button"
             onClick={handleRecenter}
             title="Đưa góc nhìn về trung tâm mặt bằng đang chọn"
@@ -1208,7 +1210,10 @@ export function InteractiveMap({
 
       {/* Mode === 'location': Active Routes Legend Overlay */}
       {mode === 'location' && activeRoutes.length > 0 && (
-        <div className="absolute bottom-4 left-3 z-20 max-w-sm bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl p-3 shadow-lg pointer-events-auto">
+        <div
+          id="tour-map-route-list"
+          className="absolute bottom-4 left-3 z-20 max-w-sm bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl p-3 shadow-lg pointer-events-auto"
+        >
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
               <Route className="w-4 h-4 text-blue-600" />
@@ -1255,6 +1260,7 @@ export function InteractiveMap({
                   </span>
 
                   <button
+                    id="tour-map-fly-cam"
                     type="button"
                     onClick={() => startRouteCameraFlyalong(r)}
                     className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] shadow-xs transition cursor-pointer"
