@@ -235,20 +235,30 @@ export const LandingPageView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-16">
-      {/* 1. HERO SECTION */}
-      <section className="relative border-b border-slate-200 bg-white pt-12 pb-16 md:pt-16 md:pb-20">
-        <div className="absolute inset-0 bg-dot-grid opacity-35 pointer-events-none" />
+      {/* 1. HERO SECTION WITH ARCHITECTURAL COMMERCIAL PHOTOGRAPHY BACKGROUND */}
+      <section className="relative overflow-hidden border-b border-slate-200/80 bg-slate-100 pt-12 pb-16 md:pt-16 md:pb-20">
+        {/* Architectural Background Photography with Subtle Vignette & Gradient Overlay */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <img
+            src="/images/hero-bg.jpg"
+            alt="Mặt bằng thương mại SpaceVision AI"
+            className="h-full w-full object-cover object-[center_35%] filter brightness-[0.98] contrast-[1.02]"
+          />
+          {/* Dual Layer Gradient: High legibility for text while preserving rich architectural context */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/92 via-white/88 to-slate-50/98 backdrop-blur-[2px]" />
+          <div className="absolute inset-0 bg-dot-grid opacity-25" />
+        </div>
 
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           {/* Top Architectural Badge & Help Guide Trigger */}
           <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-slate-100/90 px-3.5 py-1 text-xs font-semibold text-slate-800 shadow-sm">
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/95 px-3.5 py-1 text-xs font-semibold text-slate-800 shadow-xs backdrop-blur-sm">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Hệ thống Khảo sát & Tối ưu Không gian Thương mại Hà Nội</span>
             </div>
             <button
               onClick={() => openOnboardingGuide()}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-100 hover:text-slate-900 transition"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white/95 px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-100 hover:text-slate-900 transition backdrop-blur-sm cursor-pointer"
               title="Xem hướng dẫn sử dụng từng bước"
             >
               <HelpCircle className="h-3.5 w-3.5 text-slate-600" />
@@ -268,7 +278,7 @@ export const LandingPageView: React.FC = () => {
           </div>
 
           {/* Central Real Estate Search Box */}
-          <div className="mt-8 rounded-2xl border border-slate-200/90 bg-white p-3.5 sm:p-5 shadow-xl shadow-slate-200/60">
+          <div className="mt-8 rounded-2xl border border-slate-200/90 bg-white/95 p-3.5 sm:p-5 shadow-2xl shadow-slate-900/10 backdrop-blur-md">
             {/* Natural language idea input */}
             <div id="tour-search-input" className="relative mb-3.5">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
