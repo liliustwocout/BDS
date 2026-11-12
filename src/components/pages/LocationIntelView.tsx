@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   Navigation,
   Route,
@@ -114,21 +114,47 @@ export function LocationIntelView() {
   const [panelCollapsed, setPanelCollapsed] = useState(false);
   const [mobileView, setMobileView] = useState<'map' | 'panel'>('map');
   const [mapViewMode, setMapViewMode] = useState<'urban_sim' | 'maplibre'>('urban_sim');
+  const [flyTargetRouteId, setFlyTargetRouteId] = useState<string | null>(null);
+
+  const userClearedRoutesRef = useRef(false);
+  const initialRoutedPropertyRef = useRef<string | null>(null);
 
   const selectedProperty = useMemo(
     () => properties.find((p) => p.id === selectedPropertyId) || properties[0],
     [properties, selectedPropertyId]
   );
 
-  // Auto-route to representative nearby amenities when entering Location Intel view
+  // Auto-route ONCE on initial load only if user hasn't explicitly cleared routes
   React.useEffect(() => {
+    if (userClearedRoutesRef.current) return;
+    if (initialRoutedPropertyRef.current === selectedPropertyId) return;
+    initialRoutedPropertyRef.current = selectedPropertyId;
+
     if (activeRoutes.length === 0) {
       const timer = setTimeout(() => {
-        routeKeyNearbyPOIs();
-      }, 400);
+        if (!userClearedRoutesRef.current) {
+          routeKeyNearbyPOIs();
+        }
+      }, 350);
       return () => clearTimeout(timer);
     }
-  }, [selectedPropertyId, activeRoutes.length, routeKeyNearbyPOIs]);
+  }, [selectedPropertyId, routeKeyNearbyPOIs]);
+
+  const handleClearRoutes = () => {
+    userClearedRoutesRef.current = true;
+    setFlyTargetRouteId(null);
+    clearRoutes();
+  };
+
+  const handleRouteKeyPOIs = () => {
+    userClearedRoutesRef.current = false;
+    routeKeyNearbyPOIs();
+  };
+
+  const handleTogglePOI = async (poiId: string) => {
+    userClearedRoutesRef.current = false;
+    await toggleSelectPOI(poiId);
+  };
 
   const biReport = useMemo(() => {
     if (!selectedProperty) return null;
@@ -203,7 +229,7 @@ export function LocationIntelView() {
             <>
               <button
                 type="button"
-                onClick={() => routeKeyNearbyPOIs()}
+                onClick={() => handleRouteKeyPOIs()}
                 className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/95 hover:bg-white border border-slate-200 text-xs sm:text-sm font-bold text-slate-900 shadow-md backdrop-blur-md transition hover:border-slate-300 active:scale-95"
                 title="Tự động vẽ và tạo hiệu ứng đường đi ra các tiện ích trọng điểm gần nhất"
               >
@@ -217,7 +243,7 @@ export function LocationIntelView() {
               {activeRoutes.length > 0 && (
                 <button
                   type="button"
-                  onClick={() => clearRoutes()}
+                  onClick={() => handleClearRoutes()}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/95 hover:bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 shadow-md backdrop-blur-md transition"
                   title="Xoá tất cả lộ trình"
                 >
@@ -246,7 +272,11 @@ export function LocationIntelView() {
             onToggleAnalysis={() => setPanelCollapsed((c) => !c)}
           />
         ) : (
-          <InteractiveMap mode="location" />
+          <InteractiveMap
+            mode="location"
+            flyToRouteId={flyTargetRouteId}
+            onClearFlyToRoute={() => setFlyTargetRouteId(null)}
+          />
         )}
       </main>
 
@@ -719,7 +749,7 @@ export function LocationIntelView() {
                 {activeRoutes.length > 0 && (
                   <button
                     type="button"
-                    onClick={clearRoutes}
+                    onClick={handleClearRoutes}
                     className="inline-flex items-center gap-1 text-xs text-rose-600 hover:text-rose-700 font-bold"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -736,7 +766,7 @@ export function LocationIntelView() {
                 return (
                   <div
                     key={poi.id}
-                    onClick={() => void toggleSelectPOI(poi.id)}
+                    onClick={() => void handleTogglePOI(poi.id)}
                     className={`p-3.5 rounded-xl border transition-all cursor-pointer bg-white ${
                       isSelected
                         ? 'border-blue-600 ring-2 ring-blue-100 shadow-md'
@@ -784,22 +814,39 @@ export function LocationIntelView() {
                             <span className="text-slate-400">•</span>
                             <span>~{Math.max(1, Math.round(route.durationSeconds / 60))} phút</span>
                           </div>
-                          <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold border ${
-                              route.isRealRouting
-                                ? 'bg-blue-50 text-blue-700 border-blue-200'
-                                : 'bg-amber-50 text-amber-700 border-amber-200'
-                            }`}
-                          >
-                            {route.isRealRouting ? (
-                              <>
-                                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-                                <span>OSRM Thực tế</span>
-                              </>
-                            ) : (
-                              <span>Ước lượng đô thị</span>
-                            )}
-                          </span>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMapViewMode('maplibre');
+                                setFlyTargetRouteId(route.poiId);
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold transition shadow-2xs cursor-pointer"
+                              title="Camera bay dọc theo tuyến đường OSRM đến tiện ích này"
+                            >
+                              <Compass className="w-3.5 h-3.5 text-blue-600" />
+                              <span>Bay camera</span>
+                            </button>
+
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold border ${
+                                route.isRealRouting
+                                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}
+                            >
+                              {route.isRealRouting ? (
+                                <>
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                                  <span>OSRM</span>
+                                </>
+                              ) : (
+                                <span>Ước lượng</span>
+                              )}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     )}

@@ -279,3 +279,28 @@ export const POI_CATEGORY_META: Record<
     iconName: 'Cross',
   },
 };
+
+/**
+ * Calculates compass bearing in degrees (0..360) from origin to destination [lng, lat]
+ */
+export function calculateBearingDegrees(
+  origin: [number, number],
+  destination: [number, number]
+): number {
+  const [lng1, lat1] = normalizeLngLat(origin);
+  const [lng2, lat2] = normalizeLngLat(destination);
+
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const phi1 = toRad(lat1);
+  const phi2 = toRad(lat2);
+  const deltaLambda = toRad(lng2 - lng1);
+
+  const y = Math.sin(deltaLambda) * Math.cos(phi2);
+  const x =
+    Math.cos(phi1) * Math.sin(phi2) -
+    Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda);
+
+  const theta = Math.atan2(y, x);
+  const bearing = (theta * 180) / Math.PI;
+  return (bearing + 360) % 360;
+}

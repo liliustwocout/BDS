@@ -28,12 +28,15 @@ import {
 import { useSpaceVisionStore } from '@/store/useSpaceVisionStore';
 import { scorePropertyForIntent, BUSINESS_TYPE_META } from '@/lib/aiEngine';
 import { getBuildingFootprintsGeoJSON } from '@/lib/building3dGeo';
+import { calculateHaversineMeters, calculateBearingDegrees } from '@/lib/geoUtils';
 import type { PropertyItem, POICategory, POIItem, RouteResult } from '@/types';
 
 export interface InteractiveMapProps {
   mode: 'discovery' | 'location';
   filteredProperties?: PropertyItem[];
   className?: string;
+  flyToRouteId?: string | null;
+  onClearFlyToRoute?: () => void;
 }
 
 type BasemapTheme = 'streets' | 'hybrid' | 'osm';
@@ -219,7 +222,13 @@ function buildRasterStyle(theme: BasemapTheme): maplibregl.StyleSpecification {
   };
 }
 
-export function InteractiveMap({ mode, filteredProperties, className = '' }: InteractiveMapProps) {
+export function InteractiveMap({
+  mode,
+  filteredProperties,
+  className = '',
+  flyToRouteId,
+  onClearFlyToRoute,
+}: InteractiveMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
@@ -233,6 +242,11 @@ export function InteractiveMap({ mode, filteredProperties, className = '' }: Int
   const [showPreviewCard, setShowPreviewCard] = useState(true);
   const [showCatchmentCircle, setShowCatchmentCircle] = useState(true);
   const [is3DActive, setIs3DActive] = useState(true);
+
+  // Camera fly-along state for MapLibre
+  const [flyingRoute, setFlyingRoute] = useState<RouteResult | null>(null);
+  const [flightProgress, setFlightProgress] = useState(0);
+  const flightAnimRef = useRef<number | null>(null);
 
   const {
     properties,
@@ -880,6 +894,131 @@ export function InteractiveMap({ mode, filteredProperties, className = '' }: Int
     });
   };
 
+  // Start smooth camera fly-along along route polyline
+  const startRouteCameraFlyalong = (route: RouteResult) => {
+    const map = mapRef.current;
+    if (!map || !route.geometry || route.geometry.length === 0) return;
+
+    if (flightAnimRef.current) {
+      cancelAnimationFrame(flightAnimRef.current);
+      flightAnimRef.current = null;
+    }
+
+    const pts = route.geometry.map((pt) => toLngLat(pt));
+    if (pts.length < 2) return;
+
+    const segDistances: number[] = [];
+    const cumLengths: number[] = [0];
+    let totalLen = 0;
+
+    for (let i = 0; i < pts.length - 1; i++) {
+      const d = calculateHaversineMeters(pts[i], pts[i + 1]);
+      segDistances.push(d);
+      totalLen += d;
+      cumLengths.push(totalLen);
+    }
+
+    if (totalLen <= 0) return;
+
+    setFlyingRoute(route);
+    setFlightProgress(0);
+
+    const duration = Math.min(12000, Math.max(5000, (totalLen / 65) * 1000));
+    const startTime = performance.now();
+
+    const animateFlight = (now: number) => {
+      const elapsed = now - startTime;
+      const alpha = Math.min(1, elapsed / duration);
+      setFlightProgress(Math.round(alpha * 100));
+
+      const targetDist = alpha * totalLen;
+
+      let segIdx = 0;
+      for (let i = 0; i < segDistances.length; i++) {
+        if (targetDist >= cumLengths[i] && targetDist <= cumLengths[i + 1]) {
+          segIdx = i;
+          break;
+        }
+      }
+
+      const segLen = segDistances[segIdx] || 1;
+      const segAlpha = Math.max(0, Math.min(1, (targetDist - cumLengths[segIdx]) / segLen));
+      const p1 = pts[segIdx];
+      const p2 = pts[Math.min(pts.length - 1, segIdx + 1)];
+
+      const curLng = p1[0] + (p2[0] - p1[0]) * segAlpha;
+      const curLat = p1[1] + (p2[1] - p1[1]) * segAlpha;
+
+      const lookAheadIdx = Math.min(pts.length - 1, segIdx + 1);
+      const bearing = calculateBearingDegrees([curLng, curLat], pts[lookAheadIdx]);
+
+      map.jumpTo({
+        center: [curLng, curLat],
+        zoom: 17.8,
+        pitch: 62,
+        bearing: bearing,
+      });
+
+      if (alpha < 1) {
+        flightAnimRef.current = requestAnimationFrame(animateFlight);
+      } else {
+        map.easeTo({
+          center: pts[pts.length - 1],
+          zoom: 17.4,
+          pitch: 45,
+          bearing: (bearing + 25) % 360,
+          duration: 1200,
+        });
+        flightAnimRef.current = null;
+        setTimeout(() => {
+          setFlyingRoute(null);
+          onClearFlyToRoute?.();
+        }, 2200);
+      }
+    };
+
+    flightAnimRef.current = requestAnimationFrame(animateFlight);
+  };
+
+  const stopRouteCameraFlyalong = () => {
+    if (flightAnimRef.current) {
+      cancelAnimationFrame(flightAnimRef.current);
+      flightAnimRef.current = null;
+    }
+    setFlyingRoute(null);
+    setFlightProgress(0);
+    onClearFlyToRoute?.();
+    const map = mapRef.current;
+    if (map && selectedProperty) {
+      map.flyTo({
+        center: toLngLat(selectedProperty.coordinates),
+        zoom: 16.2,
+        pitch: 52,
+        bearing: -15,
+        duration: 800,
+      });
+    }
+  };
+
+  // Sync external flyToRouteId if passed from outside
+  useEffect(() => {
+    if (flyToRouteId && activeRoutes.length > 0) {
+      const match = activeRoutes.find((r) => r.poiId === flyToRouteId);
+      if (match) {
+        startRouteCameraFlyalong(match);
+      }
+    }
+  }, [flyToRouteId, activeRoutes]);
+
+  // Clean up flight anim on unmount
+  useEffect(() => {
+    return () => {
+      if (flightAnimRef.current) {
+        cancelAnimationFrame(flightAnimRef.current);
+      }
+    };
+  }, []);
+
   // Toggle 3D Tilt perspective (0° top-down vs 55° perspective)
   const handleToggle3D = () => {
     const map = mapRef.current;
@@ -1068,28 +1207,69 @@ export function InteractiveMap({ mode, filteredProperties, className = '' }: Int
                     • ~{Math.max(1, Math.round(r.durationSeconds / 60))} phút
                   </div>
                 </div>
-                <span
-                  className={`shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${
-                    r.isRealRouting
-                      ? 'bg-blue-50 text-blue-700 border-blue-200'
-                      : 'bg-amber-50 text-amber-700 border-amber-200'
-                  }`}
-                >
-                  {r.isRealRouting ? (
-                    <>
-                      <CheckCircle2 className="w-3 h-3 text-blue-600" />
-                      OSRM Thực tế
-                    </>
-                  ) : (
-                    <>
-                      <AlertTriangle className="w-3 h-3 text-amber-600" />
-                      Ước tính đô thị
-                    </>
-                  )}
-                </span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span
+                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+                      r.isRealRouting
+                        ? 'bg-blue-50 text-blue-700 border-blue-200'
+                        : 'bg-amber-50 text-amber-700 border-amber-200'
+                    }`}
+                  >
+                    {r.isRealRouting ? (
+                      <>
+                        <CheckCircle2 className="w-3 h-3 text-blue-600" />
+                        <span>OSRM</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertTriangle className="w-3 h-3 text-amber-600" />
+                        <span>Ước tính</span>
+                      </>
+                    )}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => startRouteCameraFlyalong(r)}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] shadow-xs transition cursor-pointer"
+                    title="Camera bay dọc theo tuyến đường từ toà nhà đến tiện ích này"
+                  >
+                    <Compass className="w-3 h-3" />
+                    <span>Bay cam</span>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Floating Camera Fly-Along Flight Player HUD */}
+      {flyingRoute && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/95 text-slate-900 border-2 border-blue-500 shadow-2xl backdrop-blur-md animate-fade-in pointer-events-auto">
+          <div className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-600"></span>
+          </div>
+          <div className="text-xs">
+            <div className="font-extrabold text-slate-900 flex items-center gap-1.5">
+              <span>Đang bay theo đường đi:</span>
+              <span className="text-blue-600 font-bold">{flyingRoute.poiName}</span>
+            </div>
+            <div className="text-[10px] text-slate-500">
+              Tiến độ {flightProgress}% •{' '}
+              {flyingRoute.distanceMeters >= 1000
+                ? `${(flyingRoute.distanceMeters / 1000).toFixed(2)} km`
+                : `${Math.round(flyingRoute.distanceMeters)} m`}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={stopRouteCameraFlyalong}
+            className="ml-2 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 border border-slate-200 transition cursor-pointer"
+          >
+            Dừng camera
+          </button>
         </div>
       )}
 
